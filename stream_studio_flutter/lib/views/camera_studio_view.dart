@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:stream_studio_client/stream_studio_client.dart';
@@ -29,6 +30,7 @@ class _CameraStudioViewState extends State<CameraStudioView> {
   int _activeCameraIndex = 0; // 0 = Back, 1 = Front
   Timer? _heartbeatTimer;
   final String _deviceId = 'cam_${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+  final Random _random = Random();
 
   @override
   void initState() {
@@ -86,6 +88,7 @@ class _CameraStudioViewState extends State<CameraStudioView> {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!_isConnected) return;
+      final double simulatedAudioLevel = _isAudioMuted ? 0.0 : (0.4 + _random.nextDouble() * 0.5);
       widget.client.studio.sendStreamMessage(
         StreamHeartbeat(
           streamId: widget.streamId,
@@ -93,6 +96,7 @@ class _CameraStudioViewState extends State<CameraStudioView> {
           deviceType: 'mobile_camera',
           fps: 30.0,
           resolution: '1280x720',
+          audioLevel: simulatedAudioLevel,
           timestamp: DateTime.now(),
         ),
       );

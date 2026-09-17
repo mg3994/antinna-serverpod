@@ -100,6 +100,7 @@ void main() {
         deviceType: 'mobile_camera',
         fps: 30.0,
         resolution: '1280x720',
+        audioLevel: 0.85,
         timestamp: DateTime.now(),
       );
 
@@ -108,12 +109,14 @@ void main() {
       expect(json['deviceId'], equals('cam_101'));
       expect(json['fps'], equals(30.0));
       expect(json['resolution'], equals('1280x720'));
+      expect(json['audioLevel'], equals(0.85));
 
       final deserialized = StreamHeartbeat.fromJson(json);
       expect(deserialized.streamId, equals('room_1'));
       expect(deserialized.deviceId, equals('cam_101'));
       expect(deserialized.fps, equals(30.0));
       expect(deserialized.resolution, equals('1280x720'));
+      expect(deserialized.audioLevel, equals(0.85));
     });
   });
 }

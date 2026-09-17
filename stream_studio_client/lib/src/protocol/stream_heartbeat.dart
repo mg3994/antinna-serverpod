@@ -20,6 +20,7 @@ abstract class StreamHeartbeat implements _i1.SerializableModel {
     required this.deviceType,
     required this.fps,
     required this.resolution,
+    this.audioLevel,
     required this.timestamp,
   });
 
@@ -29,6 +30,7 @@ abstract class StreamHeartbeat implements _i1.SerializableModel {
     required String deviceType,
     required double fps,
     required String resolution,
+    double? audioLevel,
     required DateTime timestamp,
   }) = _StreamHeartbeatImpl;
 
@@ -39,6 +41,7 @@ abstract class StreamHeartbeat implements _i1.SerializableModel {
       deviceType: jsonSerialization['deviceType'] as String,
       fps: (jsonSerialization['fps'] as num).toDouble(),
       resolution: jsonSerialization['resolution'] as String,
+      audioLevel: (jsonSerialization['audioLevel'] as num?)?.toDouble(),
       timestamp: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['timestamp'],
       ),
@@ -55,6 +58,8 @@ abstract class StreamHeartbeat implements _i1.SerializableModel {
 
   String resolution;
 
+  double? audioLevel;
+
   DateTime timestamp;
 
   /// Returns a shallow copy of this [StreamHeartbeat]
@@ -66,6 +71,7 @@ abstract class StreamHeartbeat implements _i1.SerializableModel {
     String? deviceType,
     double? fps,
     String? resolution,
+    double? audioLevel,
     DateTime? timestamp,
   });
   @override
@@ -77,6 +83,7 @@ abstract class StreamHeartbeat implements _i1.SerializableModel {
       'deviceType': deviceType,
       'fps': fps,
       'resolution': resolution,
+      if (audioLevel != null) 'audioLevel': audioLevel,
       'timestamp': timestamp.toJson(),
     };
   }
@@ -87,6 +94,8 @@ abstract class StreamHeartbeat implements _i1.SerializableModel {
   }
 }
 
+class _Undefined {}
+
 class _StreamHeartbeatImpl extends StreamHeartbeat {
   _StreamHeartbeatImpl({
     required String streamId,
@@ -94,6 +103,7 @@ class _StreamHeartbeatImpl extends StreamHeartbeat {
     required String deviceType,
     required double fps,
     required String resolution,
+    double? audioLevel,
     required DateTime timestamp,
   }) : super._(
          streamId: streamId,
@@ -101,6 +111,7 @@ class _StreamHeartbeatImpl extends StreamHeartbeat {
          deviceType: deviceType,
          fps: fps,
          resolution: resolution,
+         audioLevel: audioLevel,
          timestamp: timestamp,
        );
 
@@ -114,6 +125,7 @@ class _StreamHeartbeatImpl extends StreamHeartbeat {
     String? deviceType,
     double? fps,
     String? resolution,
+    Object? audioLevel = _Undefined,
     DateTime? timestamp,
   }) {
     return StreamHeartbeat(
@@ -122,6 +134,7 @@ class _StreamHeartbeatImpl extends StreamHeartbeat {
       deviceType: deviceType ?? this.deviceType,
       fps: fps ?? this.fps,
       resolution: resolution ?? this.resolution,
+      audioLevel: audioLevel is double? ? audioLevel : this.audioLevel,
       timestamp: timestamp ?? this.timestamp,
     );
   }

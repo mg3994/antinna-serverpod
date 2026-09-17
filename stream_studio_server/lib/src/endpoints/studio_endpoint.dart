@@ -3,17 +3,22 @@ import '../generated/protocol.dart';
 
 class StudioEndpoint extends StreamingEndpoint {
   static const String _channelPrefix = 'studio_room_';
+  final Map<StreamingSession, MessageListener> _listeners = {};
 
   @override
   Future<void> streamOpened(StreamingSession session) async {
     final streamId = session.queryParameters['streamId'] ?? 'default_session';
 
+    void listener(SerializableModel message) {
+      sendStreamMessage(session, message);
+    }
+
+    _listeners[session] = listener;
+
     // Subscribe websocket connection to stream room channel
     session.messages.addListener(
       '$_channelPrefix$streamId',
-      (message) {
-        sendStreamMessage(session, message);
-      },
+      listener,
     );
   }
 
@@ -39,6 +44,9 @@ class StudioEndpoint extends StreamingEndpoint {
   @override
   Future<void> streamClosed(StreamingSession session) async {
     final streamId = session.queryParameters['streamId'] ?? 'default_session';
-    session.messages.removeListener('$_channelPrefix$streamId');
+    final listener = _listeners.remove(session);
+    if (listener != null) {
+      session.messages.removeListener('$_channelPrefix$streamId', listener);
+    }
   }
 }

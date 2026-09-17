@@ -202,6 +202,34 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
     _pushOverlayLive(true);
   }
 
+  Widget _buildAudioVuMeter(double level) {
+    final clampedLevel = level.clamp(0.0, 1.0);
+    final color = clampedLevel > 0.8
+        ? Colors.redAccent
+        : clampedLevel > 0.5
+            ? Colors.amberAccent
+            : Colors.greenAccent;
+
+    return Container(
+      width: 100,
+      height: 8,
+      decoration: BoxDecoration(
+        color: Colors.white12,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: FractionallySizedBox(
+        alignment: Alignment.centerLeft,
+        widthFactor: clampedLevel,
+        child: Container(
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -315,6 +343,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                   border: Border.all(color: Colors.white24),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.speed, color: Colors.greenAccent, size: 14),
                     const SizedBox(width: 6),
@@ -326,6 +355,12 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                         fontFamily: 'monospace',
                       ),
                     ),
+                    if (_latestHeartbeat!.audioLevel != null) ...[
+                      const SizedBox(width: 8),
+                      const Icon(Icons.equalizer, color: Colors.amberAccent, size: 14),
+                      const SizedBox(width: 4),
+                      _buildAudioVuMeter(_latestHeartbeat!.audioLevel!),
+                    ],
                   ],
                 ),
               ),
