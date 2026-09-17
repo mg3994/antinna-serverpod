@@ -22,12 +22,14 @@ import 'greetings/greeting.dart' as _i6;
 import 'overlay_config.dart' as _i7;
 import 'overlay_preset.dart' as _i8;
 import 'signaling_message.dart' as _i9;
-import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i10;
+import 'stream_heartbeat.dart' as _i10;
+import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i11;
 export 'camera_control.dart';
 export 'greetings/greeting.dart';
 export 'overlay_config.dart';
 export 'overlay_preset.dart';
 export 'signaling_message.dart';
+export 'stream_heartbeat.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
   Protocol._();
@@ -152,6 +154,9 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i9.SignalingMessage) {
       return _i9.SignalingMessage.fromJson(data) as T;
     }
+    if (t == _i10.StreamHeartbeat) {
+      return _i10.StreamHeartbeat.fromJson(data) as T;
+    }
     if (t == _i1.getType<_i5.CameraControl?>()) {
       return (data != null ? _i5.CameraControl.fromJson(data) : null) as T;
     }
@@ -167,9 +172,12 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i9.SignalingMessage?>()) {
       return (data != null ? _i9.SignalingMessage.fromJson(data) : null) as T;
     }
-    if (t == List<_i10.OverlayPreset>) {
+    if (t == _i1.getType<_i10.StreamHeartbeat?>()) {
+      return (data != null ? _i10.StreamHeartbeat.fromJson(data) : null) as T;
+    }
+    if (t == List<_i11.OverlayPreset>) {
       return (data as List)
-              .map((e) => deserialize<_i10.OverlayPreset>(e))
+              .map((e) => deserialize<_i11.OverlayPreset>(e))
               .toList()
           as T;
     }
@@ -192,6 +200,7 @@ class Protocol extends _i1.SerializationManagerServer {
       _i7.OverlayConfig => 'OverlayConfig',
       _i8.OverlayPreset => 'OverlayPreset',
       _i9.SignalingMessage => 'SignalingMessage',
+      _i10.StreamHeartbeat => 'StreamHeartbeat',
       _ => null,
     };
   }
@@ -219,6 +228,8 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'OverlayPreset';
       case _i9.SignalingMessage():
         return 'SignalingMessage';
+      case _i10.StreamHeartbeat():
+        return 'StreamHeartbeat';
     }
     className = _i2.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -255,6 +266,9 @@ class Protocol extends _i1.SerializationManagerServer {
     }
     if (dataClassName == 'SignalingMessage') {
       return deserialize<_i9.SignalingMessage>(data['data']);
+    }
+    if (dataClassName == 'StreamHeartbeat') {
+      return deserialize<_i10.StreamHeartbeat>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);

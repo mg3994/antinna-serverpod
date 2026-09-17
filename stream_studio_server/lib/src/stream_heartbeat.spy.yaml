@@ -1,0 +1,8 @@
+class: StreamHeartbeat
+fields:
+  streamId: String
+  deviceId: String
+  deviceType: String # "mobile_camera", "companion_web"
+  fps: double
+  resolution: String # e.g., "1280x720"
+  timestamp: DateTime

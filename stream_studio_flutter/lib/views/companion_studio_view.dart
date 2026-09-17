@@ -22,8 +22,9 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
   RTCPeerConnection? _peerConnection;
 
-  // Connection State
+  // Connection State & Telemetry
   bool _isConnected = false;
+  StreamHeartbeat? _latestHeartbeat;
 
   // Lower-Third Editor Form State
   final _titleController = TextEditingController(text: 'Live Studio News');
@@ -57,7 +58,9 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
     await _remoteRenderer.initialize();
 
     try {
-      await widget.client.openStreamingConnection();
+      await widget.client.openStreamingConnection(
+        disconnectOnLostInternetConnection: true,
+      );
       setState(() => _isConnected = true);
 
       // Listen for incoming websocket messages
@@ -66,6 +69,8 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
 
         if (message is SignalingMessage) {
           _handleSignalingMessage(message);
+        } else if (message is StreamHeartbeat) {
+          setState(() => _latestHeartbeat = message);
         } else if (message is OverlayConfig) {
           setState(() {
             _isOverlayVisible = message.isVisible;
@@ -178,13 +183,23 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
     );
   }
 
+  void _applyQuickTemplate(String title, String subtitle, String position, String color) {
+    setState(() {
+      _titleController.text = title;
+      _subtitleController.text = subtitle;
+      _selectedPosition = position;
+      _backgroundColorHex = color;
+    });
+    _pushOverlayLive(true);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xff121212),
       appBar: AppBar(
         backgroundColor: const Color(0xff1e1e1e),
-        title: const Text('StreamStudio Companion Dashboard'),
+        title: Text('StreamStudio Dashboard (${widget.streamId})'),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -197,7 +212,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  _isConnected ? 'LIVE' : 'OFFLINE',
+                  _isConnected ? 'LIVE STUDIO' : 'OFFLINE',
                   style: TextStyle(
                     color: _isConnected ? Colors.green : Colors.red,
                     fontWeight: FontWeight.bold,
@@ -279,6 +294,33 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
               ),
             ),
           ),
+          if (_latestHeartbeat != null)
+            Positioned(
+              bottom: 12,
+              right: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black80,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.speed, color: Colors.greenAccent, size: 14),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${_latestHeartbeat!.deviceId} | ${_latestHeartbeat!.resolution} | ${_latestHeartbeat!.fps.toInt()} FPS',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -290,12 +332,74 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       child: Column(
         crossAxisAlignment: CrossAlignment.start,
         children: [
+          _buildQuickStyleTemplates(),
+          const SizedBox(height: 24),
           _buildLowerThirdEditor(),
           const SizedBox(height: 24),
           _buildCameraControlBar(),
           const SizedBox(height: 24),
           _buildPresetManager(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildQuickStyleTemplates() {
+    return Card(
+      color: const Color(0xff1e1e1e),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAlignment.start,
+          children: [
+            const Text(
+              'Quick Studio Templates',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ActionChip(
+                  backgroundColor: const Color(0xffE50914),
+                  label: const Text('Breaking News', style: TextStyle(color: Colors.white)),
+                  onPressed: () => _applyQuickTemplate(
+                    'BREAKING NEWS',
+                    'Major update in live stream engine',
+                    'lower_third',
+                    '#E50914',
+                  ),
+                ),
+                ActionChip(
+                  backgroundColor: const Color(0xff0066CC),
+                  label: const Text('Top Badge', style: TextStyle(color: Colors.white)),
+                  onPressed: () => _applyQuickTemplate(
+                    'LIVE BROADCAST',
+                    '',
+                    'top_right',
+                    '#0066CC',
+                  ),
+                ),
+                ActionChip(
+                  backgroundColor: const Color(0xff111111),
+                  label: const Text('Bottom Ticker', style: TextStyle(color: Colors.white)),
+                  onPressed: () => _applyQuickTemplate(
+                    'NEWS TICKER',
+                    'StreamStudio engine running at 60fps with low-latency state sync',
+                    'ticker',
+                    '#111111',
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -310,7 +414,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
           crossAxisAlignment: CrossAlignment.start,
           children: [
             const Text(
-              'Lower-Third Banner Editor',
+              'Overlay & Lower-Third Editor',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -322,7 +426,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
               controller: _titleController,
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
-                labelText: 'Title',
+                labelText: 'Title / Header',
                 labelStyle: TextStyle(color: Colors.white70),
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.white24),
@@ -337,7 +441,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
               controller: _subtitleController,
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
-                labelText: 'Subtitle',
+                labelText: 'Subtitle / Ticker Text',
                 labelStyle: TextStyle(color: Colors.white70),
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.white24),
@@ -369,7 +473,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                       ),
                       DropdownMenuItem(
                         value: 'top_right',
-                        child: Text('Top Right'),
+                        child: Text('Top Right Badge'),
                       ),
                       DropdownMenuItem(
                         value: 'ticker',
@@ -612,7 +716,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                       style: const TextStyle(color: Colors.white),
                     ),
                     subtitle: Text(
-                      preset.subtitle,
+                      '${preset.position.toUpperCase()} • ${preset.subtitle}',
                       style: const TextStyle(color: Colors.white54),
                     ),
                     trailing: Row(

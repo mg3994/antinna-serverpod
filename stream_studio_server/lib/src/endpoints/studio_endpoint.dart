@@ -27,7 +27,8 @@ class StudioEndpoint extends StreamingEndpoint {
     // Intercept and broadcast recognized studio messages to room
     if (message is OverlayConfig ||
         message is CameraControl ||
-        message is SignalingMessage) {
+        message is SignalingMessage ||
+        message is StreamHeartbeat) {
       session.messages.postMessage(
         '$_channelPrefix$streamId',
         message,

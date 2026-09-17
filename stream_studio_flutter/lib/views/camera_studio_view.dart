@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:stream_studio_client/stream_studio_client.dart';
@@ -25,6 +26,8 @@ class _CameraStudioViewState extends State<CameraStudioView> {
   double _currentZoom = 1.0;
   bool _isTorchOn = false;
   int _activeCameraIndex = 0; // 0 = Back, 1 = Front
+  Timer? _heartbeatTimer;
+  final String _deviceId = 'cam_${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
 
   @override
   void initState() {
@@ -72,9 +75,27 @@ class _CameraStudioViewState extends State<CameraStudioView> {
 
       // Initialize WebRTC sender peer connection and send offer
       await _createOffer();
+      _startHeartbeatTimer();
     } catch (e) {
       debugPrint('Error connecting to Serverpod streaming endpoint: $e');
     }
+  }
+
+  void _startHeartbeatTimer() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!_isConnected) return;
+      widget.client.studio.sendStreamMessage(
+        StreamHeartbeat(
+          streamId: widget.streamId,
+          deviceId: _deviceId,
+          deviceType: 'mobile_camera',
+          fps: 30.0,
+          resolution: '1280x720',
+          timestamp: DateTime.now(),
+        ),
+      );
+    });
   }
 
   Future<void> _createOffer() async {
@@ -180,16 +201,104 @@ class _CameraStudioViewState extends State<CameraStudioView> {
     return fallback;
   }
 
-  Alignment _getAlignment(String? position) {
-    switch (position) {
-      case 'top_right':
-        return Alignment.topRight;
-      case 'ticker':
-        return Alignment.bottomCenter;
-      case 'lower_third':
-      default:
-        return Alignment.bottomLeft;
+  Widget _buildOverlayContent(OverlayConfig overlay) {
+    final bgColor = _parseColor(overlay.backgroundColor, const Color(0xffe50914));
+    final textColor = _parseColor(overlay.textColor, Colors.white);
+
+    if (overlay.position == 'top_right') {
+      return Container(
+        key: ValueKey('tr_${overlay.id}'),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 8)],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.circle, color: Colors.white, size: 8),
+            const SizedBox(width: 8),
+            Text(
+              overlay.title,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (overlay.position == 'ticker') {
+      return Container(
+        key: ValueKey('ticker_${overlay.id}'),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        color: bgColor.withValues(alpha: 0.9),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              color: Colors.black,
+              child: Text(
+                overlay.title.toUpperCase(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                overlay.subtitle,
+                style: TextStyle(color: textColor, fontSize: 14),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      );
     }
+
+    // Default Lower Third
+    return Container(
+      key: ValueKey('lt_${overlay.id}'),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black45,
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            overlay.title,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          if (overlay.subtitle.isNotEmpty)
+            Text(
+              overlay.subtitle,
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -231,7 +340,7 @@ class _CameraStudioViewState extends State<CameraStudioView> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    _isConnected ? 'LIVE (Camera Connected)' : 'CONNECTING...',
+                    _isConnected ? 'LIVE (ID: $_deviceId)' : 'CONNECTING...',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -243,61 +352,22 @@ class _CameraStudioViewState extends State<CameraStudioView> {
             ),
           ),
 
-          // Top Layer: Live Lower-Third Burn-In Text Stack
+          // Top Layer: Live Overlay Canvas Stack
           if (_activeOverlay != null && _activeOverlay!.isVisible)
             Positioned.fill(
               child: Align(
-                alignment: _getAlignment(_activeOverlay!.position),
+                alignment: _activeOverlay!.position == 'top_right'
+                    ? Alignment.topRight
+                    : _activeOverlay!.position == 'ticker'
+                        ? Alignment.bottomCenter
+                        : Alignment.bottomLeft,
                 child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: _activeOverlay!.position == 'ticker'
+                      ? EdgeInsets.zero
+                      : const EdgeInsets.all(24.0),
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
-                    child: Container(
-                      key: ValueKey(_activeOverlay!.id),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _parseColor(
-                          _activeOverlay!.backgroundColor,
-                          const Color(0xffe50914),
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black45,
-                            blurRadius: 12,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _activeOverlay!.title,
-                            style: TextStyle(
-                              color: _parseColor(
-                                _activeOverlay!.textColor,
-                                Colors.white,
-                              ),
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (_activeOverlay!.subtitle.isNotEmpty)
-                            Text(
-                              _activeOverlay!.subtitle,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
+                    child: _buildOverlayContent(_activeOverlay!),
                   ),
                 ),
               ),
@@ -309,6 +379,7 @@ class _CameraStudioViewState extends State<CameraStudioView> {
 
   @override
   void dispose() {
+    _heartbeatTimer?.cancel();
     _localRenderer.dispose();
     _localStream?.dispose();
     _peerConnection?.dispose();

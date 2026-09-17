@@ -86,5 +86,28 @@ void main() {
       expect(deserialized.id, equals(1));
       expect(deserialized.title, equals('Anchor Name'));
     });
+
+    test('StreamHeartbeat serialization and deserialization', () {
+      final heartbeat = StreamHeartbeat(
+        streamId: 'room_1',
+        deviceId: 'cam_101',
+        deviceType: 'mobile_camera',
+        fps: 30.0,
+        resolution: '1280x720',
+        timestamp: DateTime.now(),
+      );
+
+      final json = heartbeat.toJson();
+      expect(json['streamId'], equals('room_1'));
+      expect(json['deviceId'], equals('cam_101'));
+      expect(json['fps'], equals(30.0));
+      expect(json['resolution'], equals('1280x720'));
+
+      final deserialized = StreamHeartbeat.fromJson(json);
+      expect(deserialized.streamId, equals('room_1'));
+      expect(deserialized.deviceId, equals('cam_101'));
+      expect(deserialized.fps, equals(30.0));
+      expect(deserialized.resolution, equals('1280x720'));
+    });
   });
 }
