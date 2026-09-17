@@ -1,0 +1,116 @@
+/* AUTOMATICALLY GENERATED CODE DO NOT MODIFY */
+/*   To generate run: "serverpod generate"    */
+
+// ignore_for_file: implementation_imports
+// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: public_member_api_docs
+// ignore_for_file: type_literal_in_constant_pattern
+// ignore_for_file: use_super_parameters
+// ignore_for_file: invalid_use_of_internal_member
+
+// ignore_for_file: no_leading_underscores_for_library_prefixes
+
+import 'package:serverpod/serverpod.dart' as _i1;
+
+abstract class CameraControl
+    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+  CameraControl._({
+    required this.streamId,
+    required this.torchOn,
+    required this.zoomLevel,
+    required this.activeCameraIndex,
+  });
+
+  factory CameraControl({
+    required String streamId,
+    required bool torchOn,
+    required double zoomLevel,
+    required int activeCameraIndex,
+  }) = _CameraControlImpl;
+
+  factory CameraControl.fromJson(Map<String, dynamic> jsonSerialization) {
+    return CameraControl(
+      streamId: jsonSerialization['streamId'] as String,
+      torchOn: _i1.BoolJsonExtension.fromJson(jsonSerialization['torchOn']),
+      zoomLevel: (jsonSerialization['zoomLevel'] as num).toDouble(),
+      activeCameraIndex: jsonSerialization['activeCameraIndex'] as int,
+    );
+  }
+
+  String streamId;
+
+  bool torchOn;
+
+  double zoomLevel;
+
+  int activeCameraIndex;
+
+  /// Returns a shallow copy of this [CameraControl]
+  /// with some or all fields replaced by the given arguments.
+  @_i1.useResult
+  CameraControl copyWith({
+    String? streamId,
+    bool? torchOn,
+    double? zoomLevel,
+    int? activeCameraIndex,
+  });
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      '__className__': 'CameraControl',
+      'streamId': streamId,
+      'torchOn': torchOn,
+      'zoomLevel': zoomLevel,
+      'activeCameraIndex': activeCameraIndex,
+    };
+  }
+
+  @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'CameraControl',
+      'streamId': streamId,
+      'torchOn': torchOn,
+      'zoomLevel': zoomLevel,
+      'activeCameraIndex': activeCameraIndex,
+    };
+  }
+
+  @override
+  String toString() {
+    return _i1.SerializationManager.encode(this);
+  }
+}
+
+class _CameraControlImpl extends CameraControl {
+  _CameraControlImpl({
+    required String streamId,
+    required bool torchOn,
+    required double zoomLevel,
+    required int activeCameraIndex,
+  }) : super._(
+         streamId: streamId,
+         torchOn: torchOn,
+         zoomLevel: zoomLevel,
+         activeCameraIndex: activeCameraIndex,
+       );
+
+  /// Returns a shallow copy of this [CameraControl]
+  /// with some or all fields replaced by the given arguments.
+  @_i1.useResult
+  @override
+  CameraControl copyWith({
+    String? streamId,
+    bool? torchOn,
+    double? zoomLevel,
+    int? activeCameraIndex,
+  }) {
+    return CameraControl(
+      streamId: streamId ?? this.streamId,
+      torchOn: torchOn ?? this.torchOn,
+      zoomLevel: zoomLevel ?? this.zoomLevel,
+      activeCameraIndex: activeCameraIndex ?? this.activeCameraIndex,
+    );
+  }
+}

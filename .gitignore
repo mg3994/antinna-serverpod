@@ -1,0 +1,19 @@
+# Dart & Flutter
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+
+# IDE / OS
+.idea/
+.vscode/
+*.DS_Store
+*.swp
+
+# Android / iOS / macOS / Windows build folders
+stream_studio_flutter/android/.gradle
+stream_studio_flutter/ios/Pods/
+stream_studio_flutter/macos/Pods/
+stream_studio_flutter/windows/flutter/ephemeral/
+stream_studio_flutter/linux/flutter/ephemeral/
