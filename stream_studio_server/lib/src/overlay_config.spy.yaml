@@ -8,3 +8,4 @@ fields:
   isVisible: bool
   backgroundColor: String # Hex string, e.g., "#FF0000"
   textColor: String
+  animationStyle: String? # "fade", "slide", "scale"

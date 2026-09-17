@@ -4,3 +4,4 @@ fields:
   torchOn: bool
   zoomLevel: double
   activeCameraIndex: int # 0 = Back, 1 = Front
+  isMuted: bool?

@@ -24,6 +24,7 @@ abstract class OverlayConfig
     required this.isVisible,
     required this.backgroundColor,
     required this.textColor,
+    this.animationStyle,
   });
 
   factory OverlayConfig({
@@ -35,6 +36,7 @@ abstract class OverlayConfig
     required bool isVisible,
     required String backgroundColor,
     required String textColor,
+    String? animationStyle,
   }) = _OverlayConfigImpl;
 
   factory OverlayConfig.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -47,6 +49,7 @@ abstract class OverlayConfig
       isVisible: _i1.BoolJsonExtension.fromJson(jsonSerialization['isVisible']),
       backgroundColor: jsonSerialization['backgroundColor'] as String,
       textColor: jsonSerialization['textColor'] as String,
+      animationStyle: jsonSerialization['animationStyle'] as String?,
     );
   }
 
@@ -66,6 +69,8 @@ abstract class OverlayConfig
 
   String textColor;
 
+  String? animationStyle;
+
   /// Returns a shallow copy of this [OverlayConfig]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -78,6 +83,7 @@ abstract class OverlayConfig
     bool? isVisible,
     String? backgroundColor,
     String? textColor,
+    String? animationStyle,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -91,6 +97,7 @@ abstract class OverlayConfig
       'isVisible': isVisible,
       'backgroundColor': backgroundColor,
       'textColor': textColor,
+      if (animationStyle != null) 'animationStyle': animationStyle,
     };
   }
 
@@ -106,6 +113,7 @@ abstract class OverlayConfig
       'isVisible': isVisible,
       'backgroundColor': backgroundColor,
       'textColor': textColor,
+      if (animationStyle != null) 'animationStyle': animationStyle,
     };
   }
 
@@ -114,6 +122,8 @@ abstract class OverlayConfig
     return _i1.SerializationManager.encode(this);
   }
 }
+
+class _Undefined {}
 
 class _OverlayConfigImpl extends OverlayConfig {
   _OverlayConfigImpl({
@@ -125,6 +135,7 @@ class _OverlayConfigImpl extends OverlayConfig {
     required bool isVisible,
     required String backgroundColor,
     required String textColor,
+    String? animationStyle,
   }) : super._(
          id: id,
          streamId: streamId,
@@ -134,6 +145,7 @@ class _OverlayConfigImpl extends OverlayConfig {
          isVisible: isVisible,
          backgroundColor: backgroundColor,
          textColor: textColor,
+         animationStyle: animationStyle,
        );
 
   /// Returns a shallow copy of this [OverlayConfig]
@@ -149,6 +161,7 @@ class _OverlayConfigImpl extends OverlayConfig {
     bool? isVisible,
     String? backgroundColor,
     String? textColor,
+    Object? animationStyle = _Undefined,
   }) {
     return OverlayConfig(
       id: id ?? this.id,
@@ -159,6 +172,9 @@ class _OverlayConfigImpl extends OverlayConfig {
       isVisible: isVisible ?? this.isVisible,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       textColor: textColor ?? this.textColor,
+      animationStyle: animationStyle is String?
+          ? animationStyle
+          : this.animationStyle,
     );
   }
 }

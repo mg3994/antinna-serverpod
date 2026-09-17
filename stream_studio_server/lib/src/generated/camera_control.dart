@@ -20,6 +20,7 @@ abstract class CameraControl
     required this.torchOn,
     required this.zoomLevel,
     required this.activeCameraIndex,
+    this.isMuted,
   });
 
   factory CameraControl({
@@ -27,6 +28,7 @@ abstract class CameraControl
     required bool torchOn,
     required double zoomLevel,
     required int activeCameraIndex,
+    bool? isMuted,
   }) = _CameraControlImpl;
 
   factory CameraControl.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -35,6 +37,9 @@ abstract class CameraControl
       torchOn: _i1.BoolJsonExtension.fromJson(jsonSerialization['torchOn']),
       zoomLevel: (jsonSerialization['zoomLevel'] as num).toDouble(),
       activeCameraIndex: jsonSerialization['activeCameraIndex'] as int,
+      isMuted: jsonSerialization['isMuted'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isMuted']),
     );
   }
 
@@ -46,6 +51,8 @@ abstract class CameraControl
 
   int activeCameraIndex;
 
+  bool? isMuted;
+
   /// Returns a shallow copy of this [CameraControl]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -54,6 +61,7 @@ abstract class CameraControl
     bool? torchOn,
     double? zoomLevel,
     int? activeCameraIndex,
+    bool? isMuted,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -63,6 +71,7 @@ abstract class CameraControl
       'torchOn': torchOn,
       'zoomLevel': zoomLevel,
       'activeCameraIndex': activeCameraIndex,
+      if (isMuted != null) 'isMuted': isMuted,
     };
   }
 
@@ -74,6 +83,7 @@ abstract class CameraControl
       'torchOn': torchOn,
       'zoomLevel': zoomLevel,
       'activeCameraIndex': activeCameraIndex,
+      if (isMuted != null) 'isMuted': isMuted,
     };
   }
 
@@ -83,17 +93,21 @@ abstract class CameraControl
   }
 }
 
+class _Undefined {}
+
 class _CameraControlImpl extends CameraControl {
   _CameraControlImpl({
     required String streamId,
     required bool torchOn,
     required double zoomLevel,
     required int activeCameraIndex,
+    bool? isMuted,
   }) : super._(
          streamId: streamId,
          torchOn: torchOn,
          zoomLevel: zoomLevel,
          activeCameraIndex: activeCameraIndex,
+         isMuted: isMuted,
        );
 
   /// Returns a shallow copy of this [CameraControl]
@@ -105,12 +119,14 @@ class _CameraControlImpl extends CameraControl {
     bool? torchOn,
     double? zoomLevel,
     int? activeCameraIndex,
+    Object? isMuted = _Undefined,
   }) {
     return CameraControl(
       streamId: streamId ?? this.streamId,
       torchOn: torchOn ?? this.torchOn,
       zoomLevel: zoomLevel ?? this.zoomLevel,
       activeCameraIndex: activeCameraIndex ?? this.activeCameraIndex,
+      isMuted: isMuted is bool? ? isMuted : this.isMuted,
     );
   }
 }

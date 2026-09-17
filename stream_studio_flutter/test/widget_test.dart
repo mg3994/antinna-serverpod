@@ -34,8 +34,8 @@ void main() {
       ),
     );
 
-    expect(find.text('StreamStudio Companion Dashboard'), findsOneWidget);
-    expect(find.text('Lower-Third Banner Editor'), findsOneWidget);
-    expect(find.text('Remote Camera Controls'), findsOneWidget);
+    expect(find.text('StreamStudio Dashboard (test_stream)'), findsOneWidget);
+    expect(find.text('Overlay & Lower-Third Editor'), findsOneWidget);
+    expect(find.text('Remote Camera & Audio Controls'), findsOneWidget);
   });
 }

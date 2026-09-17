@@ -14,6 +14,7 @@ class StudioController {
     String position = 'lower_third',
     String backgroundColor = '#E50914',
     String textColor = '#FFFFFF',
+    String animationStyle = 'fade',
   }) async {
     final overlay = OverlayConfig(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -24,22 +25,25 @@ class StudioController {
       isVisible: isVisible,
       backgroundColor: backgroundColor,
       textColor: textColor,
+      animationStyle: animationStyle,
     );
 
     await client.studio.sendStreamMessage(overlay);
   }
 
-  /// Sends remote camera adjustments (Zoom, Torch toggle, camera switcher)
+  /// Sends remote camera adjustments (Zoom, Torch toggle, camera switcher, mic mute)
   Future<void> updateCameraHardware({
     required double zoomLevel,
     required bool torchOn,
     int activeCameraIndex = 0,
+    bool isMuted = false,
   }) async {
     final control = CameraControl(
       streamId: streamId,
       torchOn: torchOn,
       zoomLevel: zoomLevel,
       activeCameraIndex: activeCameraIndex,
+      isMuted: isMuted,
     );
 
     await client.studio.sendStreamMessage(control);

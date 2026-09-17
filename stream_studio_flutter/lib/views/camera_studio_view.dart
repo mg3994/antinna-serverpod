@@ -25,6 +25,7 @@ class _CameraStudioViewState extends State<CameraStudioView> {
   bool _isConnected = false;
   double _currentZoom = 1.0;
   bool _isTorchOn = false;
+  bool _isAudioMuted = false;
   int _activeCameraIndex = 0; // 0 = Back, 1 = Front
   Timer? _heartbeatTimer;
   final String _deviceId = 'cam_${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
@@ -159,7 +160,15 @@ class _CameraStudioViewState extends State<CameraStudioView> {
     setState(() {
       _currentZoom = control.zoomLevel;
       _isTorchOn = control.torchOn;
+      if (control.isMuted != null) {
+        _isAudioMuted = control.isMuted!;
+      }
     });
+
+    final audioTrack = _localStream?.getAudioTracks().firstOrNull;
+    if (audioTrack != null && control.isMuted != null) {
+      audioTrack.enabled = !control.isMuted!;
+    }
 
     final videoTrack = _localStream?.getVideoTracks().firstOrNull;
     if (videoTrack != null) {
@@ -301,6 +310,32 @@ class _CameraStudioViewState extends State<CameraStudioView> {
     );
   }
 
+  Widget _buildAnimatedOverlay(OverlayConfig overlay) {
+    final style = overlay.animationStyle ?? 'fade';
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        if (style == 'slide') {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.0, 1.0),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          );
+        } else if (style == 'scale') {
+          return ScaleTransition(
+            scale: animation,
+            child: child,
+          );
+        }
+        return FadeTransition(opacity: animation, child: child);
+      },
+      child: _buildOverlayContent(overlay),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -347,6 +382,10 @@ class _CameraStudioViewState extends State<CameraStudioView> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  if (_isAudioMuted) ...[
+                    const SizedBox(width: 8),
+                    const Icon(Icons.mic_off, color: Colors.redAccent, size: 14),
+                  ],
                 ],
               ),
             ),
@@ -365,10 +404,7 @@ class _CameraStudioViewState extends State<CameraStudioView> {
                   padding: _activeOverlay!.position == 'ticker'
                       ? EdgeInsets.zero
                       : const EdgeInsets.all(24.0),
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    child: _buildOverlayContent(_activeOverlay!),
-                  ),
+                  child: _buildAnimatedOverlay(_activeOverlay!),
                 ),
               ),
             ),

@@ -13,6 +13,7 @@ void main() {
         isVisible: true,
         backgroundColor: '#FF0000',
         textColor: '#FFFFFF',
+        animationStyle: 'slide',
       );
 
       final json = config.toJson();
@@ -20,11 +21,13 @@ void main() {
       expect(json['streamId'], equals('room_1'));
       expect(json['title'], equals('Breaking News'));
       expect(json['isVisible'], equals(true));
+      expect(json['animationStyle'], equals('slide'));
 
       final deserialized = OverlayConfig.fromJson(json);
       expect(deserialized.id, equals('123'));
       expect(deserialized.title, equals('Breaking News'));
       expect(deserialized.backgroundColor, equals('#FF0000'));
+      expect(deserialized.animationStyle, equals('slide'));
     });
 
     test('CameraControl serialization and deserialization', () {
@@ -33,6 +36,7 @@ void main() {
         torchOn: true,
         zoomLevel: 2.5,
         activeCameraIndex: 1,
+        isMuted: true,
       );
 
       final json = control.toJson();
@@ -40,12 +44,14 @@ void main() {
       expect(json['torchOn'], equals(true));
       expect(json['zoomLevel'], equals(2.5));
       expect(json['activeCameraIndex'], equals(1));
+      expect(json['isMuted'], equals(true));
 
       final deserialized = CameraControl.fromJson(json);
       expect(deserialized.streamId, equals('room_1'));
       expect(deserialized.torchOn, equals(true));
       expect(deserialized.zoomLevel, equals(2.5));
       expect(deserialized.activeCameraIndex, equals(1));
+      expect(deserialized.isMuted, equals(true));
     });
 
     test('SignalingMessage serialization and deserialization', () {

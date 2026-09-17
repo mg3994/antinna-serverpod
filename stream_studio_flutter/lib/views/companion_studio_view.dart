@@ -34,11 +34,13 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   String _selectedPosition = 'lower_third';
   String _backgroundColorHex = '#E50914';
   String _textColorHex = '#FFFFFF';
+  String _selectedAnimationStyle = 'fade';
   bool _isOverlayVisible = false;
 
   // Remote Camera Controls State
   double _zoomLevel = 1.0;
   bool _torchOn = false;
+  bool _isAudioMuted = false;
   int _activeCameraIndex = 0; // 0 = Back, 1 = Front
 
   // Overlay Presets
@@ -79,12 +81,16 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
             _selectedPosition = message.position;
             _backgroundColorHex = message.backgroundColor;
             _textColorHex = message.textColor;
+            _selectedAnimationStyle = message.animationStyle ?? 'fade';
           });
         } else if (message is CameraControl) {
           setState(() {
             _zoomLevel = message.zoomLevel;
             _torchOn = message.torchOn;
             _activeCameraIndex = message.activeCameraIndex;
+            if (message.isMuted != null) {
+              _isAudioMuted = message.isMuted!;
+            }
           });
         }
       });
@@ -172,6 +178,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       position: _selectedPosition,
       backgroundColor: _backgroundColorHex,
       textColor: _textColorHex,
+      animationStyle: _selectedAnimationStyle,
     );
   }
 
@@ -180,15 +187,17 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       zoomLevel: _zoomLevel,
       torchOn: _torchOn,
       activeCameraIndex: _activeCameraIndex,
+      isMuted: _isAudioMuted,
     );
   }
 
-  void _applyQuickTemplate(String title, String subtitle, String position, String color) {
+  void _applyQuickTemplate(String title, String subtitle, String position, String color, String anim) {
     setState(() {
       _titleController.text = title;
       _subtitleController.text = subtitle;
       _selectedPosition = position;
       _backgroundColorHex = color;
+      _selectedAnimationStyle = anim;
     });
     _pushOverlayLive(true);
   }
@@ -374,6 +383,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                     'Major update in live stream engine',
                     'lower_third',
                     '#E50914',
+                    'slide',
                   ),
                 ),
                 ActionChip(
@@ -384,6 +394,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                     '',
                     'top_right',
                     '#0066CC',
+                    'scale',
                   ),
                 ),
                 ActionChip(
@@ -394,6 +405,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                     'StreamStudio engine running at 60fps with low-latency state sync',
                     'ticker',
                     '#111111',
+                    'fade',
                   ),
                 ),
               ],
@@ -488,11 +500,11 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _backgroundColorHex,
+                    value: _selectedAnimationStyle,
                     dropdownColor: const Color(0xff2a2a2a),
                     style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(
-                      labelText: 'Background Color',
+                      labelText: 'Animation Effect',
                       labelStyle: TextStyle(color: Colors.white70),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.white24),
@@ -500,30 +512,62 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                     ),
                     items: const [
                       DropdownMenuItem(
-                        value: '#E50914',
-                        child: Text('Red (#E50914)'),
+                        value: 'fade',
+                        child: Text('Fade In/Out'),
                       ),
                       DropdownMenuItem(
-                        value: '#0066CC',
-                        child: Text('Blue (#0066CC)'),
+                        value: 'slide',
+                        child: Text('Slide Up'),
                       ),
                       DropdownMenuItem(
-                        value: '#28A745',
-                        child: Text('Green (#28A745)'),
-                      ),
-                      DropdownMenuItem(
-                        value: '#111111',
-                        child: Text('Dark (#111111)'),
+                        value: 'scale',
+                        child: Text('Scale Up'),
                       ),
                     ],
                     onChanged: (val) {
                       if (val != null) {
-                        setState(() => _backgroundColorHex = val);
+                        setState(() => _selectedAnimationStyle = val);
                       }
                     },
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _backgroundColorHex,
+              dropdownColor: const Color(0xff2a2a2a),
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Background Color',
+                labelStyle: TextStyle(color: Colors.white70),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+              ),
+              items: const [
+                DropdownMenuItem(
+                  value: '#E50914',
+                  child: Text('Red (#E50914)'),
+                ),
+                DropdownMenuItem(
+                  value: '#0066CC',
+                  child: Text('Blue (#0066CC)'),
+                ),
+                DropdownMenuItem(
+                  value: '#28A745',
+                  child: Text('Green (#28A745)'),
+                ),
+                DropdownMenuItem(
+                  value: '#111111',
+                  child: Text('Dark (#111111)'),
+                ),
+              ],
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _backgroundColorHex = val);
+                }
+              },
             ),
             const SizedBox(height: 16),
             Row(
@@ -579,7 +623,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
           crossAxisAlignment: CrossAlignment.start,
           children: [
             const Text(
-              'Remote Camera Controls',
+              'Remote Camera & Audio Controls',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -619,7 +663,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                     const Icon(Icons.flash_on, color: Colors.white70),
                     const SizedBox(width: 8),
                     const Text(
-                      'Torch / Flashlight',
+                      'Torch',
                       style: TextStyle(color: Colors.white),
                     ),
                     Switch(
@@ -632,26 +676,49 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                     ),
                   ],
                 ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xff333333),
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _activeCameraIndex = _activeCameraIndex == 0 ? 1 : 0;
-                    });
-                    _updateCameraControl();
-                  },
-                  icon: const Icon(
-                    Icons.flip_camera_ios,
-                    color: Colors.white,
-                  ),
-                  label: Text(
-                    _activeCameraIndex == 0 ? 'Back Camera' : 'Front Camera',
-                    style: const TextStyle(color: Colors.white),
-                  ),
+                Row(
+                  children: [
+                    Icon(
+                      _isAudioMuted ? Icons.mic_off : Icons.mic,
+                      color: _isAudioMuted ? Colors.redAccent : Colors.greenAccent,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Mute Mic',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    Switch(
+                      value: _isAudioMuted,
+                      activeColor: Colors.red,
+                      onChanged: (val) {
+                        setState(() => _isAudioMuted = val);
+                        _updateCameraControl();
+                      },
+                    ),
+                  ],
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xff333333),
+                minimumSize: const Size(double.infinity, 44),
+              ),
+              onPressed: () {
+                setState(() {
+                  _activeCameraIndex = _activeCameraIndex == 0 ? 1 : 0;
+                });
+                _updateCameraControl();
+              },
+              icon: const Icon(
+                Icons.flip_camera_ios,
+                color: Colors.white,
+              ),
+              label: Text(
+                _activeCameraIndex == 0 ? 'Switch to Front Camera' : 'Switch to Back Camera',
+                style: const TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
