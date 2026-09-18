@@ -33,7 +33,8 @@ class StudioEndpoint extends StreamingEndpoint {
     if (message is OverlayConfig ||
         message is CameraControl ||
         message is SignalingMessage ||
-        message is StreamHeartbeat) {
+        message is StreamHeartbeat ||
+        message is SceneControl) {
       session.messages.postMessage(
         '$_channelPrefix$streamId',
         message,

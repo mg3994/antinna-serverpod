@@ -49,6 +49,20 @@ class StudioController {
     await client.studio.sendStreamMessage(control);
   }
 
+  /// Sends scene switching commands (Camera, Color Bars, Black Slate)
+  Future<void> sendSceneControl({
+    required String activeScene,
+    String transitionType = 'fade',
+  }) async {
+    final scene = SceneControl(
+      streamId: streamId,
+      activeScene: activeScene,
+      transitionType: transitionType,
+    );
+
+    await client.studio.sendStreamMessage(scene);
+  }
+
   /// Sends a WebRTC signaling message
   Future<void> sendSignalingMessage(SignalingMessage signalingMessage) async {
     await client.studio.sendStreamMessage(signalingMessage);

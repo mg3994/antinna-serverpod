@@ -31,6 +31,9 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   final _streamDescController = TextEditingController(text: 'Streaming via StreamStudio Serverpod engine');
   bool _isBroadcastingLive = false;
 
+  // Active Scene State
+  String _activeScene = 'camera'; // "camera", "color_bars", "black_slate"
+
   // Lower-Third Editor Form State
   final _titleController = TextEditingController(text: 'Live Studio News');
   final _subtitleController = TextEditingController(
@@ -78,6 +81,8 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
           _handleSignalingMessage(message);
         } else if (message is StreamHeartbeat) {
           setState(() => _latestHeartbeat = message);
+        } else if (message is SceneControl) {
+          setState(() => _activeScene = message.activeScene);
         } else if (message is OverlayConfig) {
           setState(() {
             _isOverlayVisible = message.isVisible;
@@ -212,6 +217,11 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
     );
   }
 
+  void _switchScene(String scene) {
+    setState(() => _activeScene = scene);
+    _controller.sendSceneControl(activeScene: scene);
+  }
+
   void _applyQuickTemplate(String title, String subtitle, String position, String color, String anim) {
     setState(() {
       _titleController.text = title;
@@ -343,7 +353,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                _isBroadcastingLive ? 'ON AIR (LIVE BROADCAST)' : 'PREVIEW / STANDBY',
+                _isBroadcastingLive ? 'ON AIR (${_activeScene.toUpperCase()})' : 'STANDBY (${_activeScene.toUpperCase()})',
                 style: TextStyle(
                   color: _isBroadcastingLive ? Colors.red : Colors.amber,
                   fontSize: 10,
@@ -397,6 +407,8 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       child: Column(
         crossAlignment: CrossAlignment.start,
         children: [
+          _buildSceneSwitcherCard(),
+          const SizedBox(height: 24),
           _buildStreamMetadataCard(),
           const SizedBox(height: 24),
           _buildQuickStyleTemplates(),
@@ -407,6 +419,69 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
           const SizedBox(height: 24),
           _buildPresetManager(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSceneSwitcherCard() {
+    return Card(
+      color: const Color(0xff1e1e1e),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAlignment: CrossAlignment.start,
+          children: [
+            const Text(
+              'Scene & Source Switcher',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _activeScene == 'camera' ? Colors.red : const Color(0xff333333),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    onPressed: () => _switchScene('camera'),
+                    icon: const Icon(Icons.videocam, color: Colors.white),
+                    label: const Text('CAMERA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _activeScene == 'color_bars' ? Colors.amber[800] : const Color(0xff333333),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    onPressed: () => _switchScene('color_bars'),
+                    icon: const Icon(Icons.grid_view, color: Colors.white),
+                    label: const Text('COLOR BARS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _activeScene == 'black_slate' ? Colors.blueGrey[800] : const Color(0xff333333),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    onPressed: () => _switchScene('black_slate'),
+                    icon: const Icon(Icons.crop_square, color: Colors.white),
+                    label: const Text('BLACK SLATE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -21,14 +21,16 @@ import 'camera_control.dart' as _i5;
 import 'greetings/greeting.dart' as _i6;
 import 'overlay_config.dart' as _i7;
 import 'overlay_preset.dart' as _i8;
-import 'signaling_message.dart' as _i9;
-import 'stream_heartbeat.dart' as _i10;
-import 'stream_metadata.dart' as _i11;
-import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i12;
+import 'scene_control.dart' as _i9;
+import 'signaling_message.dart' as _i10;
+import 'stream_heartbeat.dart' as _i11;
+import 'stream_metadata.dart' as _i12;
+import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i13;
 export 'camera_control.dart';
 export 'greetings/greeting.dart';
 export 'overlay_config.dart';
 export 'overlay_preset.dart';
+export 'scene_control.dart';
 export 'signaling_message.dart';
 export 'stream_heartbeat.dart';
 export 'stream_metadata.dart';
@@ -221,14 +223,17 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i8.OverlayPreset) {
       return _i8.OverlayPreset.fromJson(data) as T;
     }
-    if (t == _i9.SignalingMessage) {
-      return _i9.SignalingMessage.fromJson(data) as T;
+    if (t == _i9.SceneControl) {
+      return _i9.SceneControl.fromJson(data) as T;
     }
-    if (t == _i10.StreamHeartbeat) {
-      return _i10.StreamHeartbeat.fromJson(data) as T;
+    if (t == _i10.SignalingMessage) {
+      return _i10.SignalingMessage.fromJson(data) as T;
     }
-    if (t == _i11.StreamMetadata) {
-      return _i11.StreamMetadata.fromJson(data) as T;
+    if (t == _i11.StreamHeartbeat) {
+      return _i11.StreamHeartbeat.fromJson(data) as T;
+    }
+    if (t == _i12.StreamMetadata) {
+      return _i12.StreamMetadata.fromJson(data) as T;
     }
     if (t == _i1.getType<_i5.CameraControl?>()) {
       return (data != null ? _i5.CameraControl.fromJson(data) : null) as T;
@@ -242,18 +247,21 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i8.OverlayPreset?>()) {
       return (data != null ? _i8.OverlayPreset.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i9.SignalingMessage?>()) {
-      return (data != null ? _i9.SignalingMessage.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i9.SceneControl?>()) {
+      return (data != null ? _i9.SceneControl.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i10.StreamHeartbeat?>()) {
-      return (data != null ? _i10.StreamHeartbeat.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i10.SignalingMessage?>()) {
+      return (data != null ? _i10.SignalingMessage.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i11.StreamMetadata?>()) {
-      return (data != null ? _i11.StreamMetadata.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i11.StreamHeartbeat?>()) {
+      return (data != null ? _i11.StreamHeartbeat.fromJson(data) : null) as T;
     }
-    if (t == List<_i12.OverlayPreset>) {
+    if (t == _i1.getType<_i12.StreamMetadata?>()) {
+      return (data != null ? _i12.StreamMetadata.fromJson(data) : null) as T;
+    }
+    if (t == List<_i13.OverlayPreset>) {
       return (data as List)
-              .map((e) => deserialize<_i12.OverlayPreset>(e))
+              .map((e) => deserialize<_i13.OverlayPreset>(e))
               .toList()
           as T;
     }
@@ -275,9 +283,10 @@ class Protocol extends _i1.SerializationManagerServer {
       _i6.Greeting => 'Greeting',
       _i7.OverlayConfig => 'OverlayConfig',
       _i8.OverlayPreset => 'OverlayPreset',
-      _i9.SignalingMessage => 'SignalingMessage',
-      _i10.StreamHeartbeat => 'StreamHeartbeat',
-      _i11.StreamMetadata => 'StreamMetadata',
+      _i9.SceneControl => 'SceneControl',
+      _i10.SignalingMessage => 'SignalingMessage',
+      _i11.StreamHeartbeat => 'StreamHeartbeat',
+      _i12.StreamMetadata => 'StreamMetadata',
       _ => null,
     };
   }
@@ -303,11 +312,13 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'OverlayConfig';
       case _i8.OverlayPreset():
         return 'OverlayPreset';
-      case _i9.SignalingMessage():
+      case _i9.SceneControl():
+        return 'SceneControl';
+      case _i10.SignalingMessage():
         return 'SignalingMessage';
-      case _i10.StreamHeartbeat():
+      case _i11.StreamHeartbeat():
         return 'StreamHeartbeat';
-      case _i11.StreamMetadata():
+      case _i12.StreamMetadata():
         return 'StreamMetadata';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -343,14 +354,17 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'OverlayPreset') {
       return deserialize<_i8.OverlayPreset>(data['data']);
     }
+    if (dataClassName == 'SceneControl') {
+      return deserialize<_i9.SceneControl>(data['data']);
+    }
     if (dataClassName == 'SignalingMessage') {
-      return deserialize<_i9.SignalingMessage>(data['data']);
+      return deserialize<_i10.SignalingMessage>(data['data']);
     }
     if (dataClassName == 'StreamHeartbeat') {
-      return deserialize<_i10.StreamHeartbeat>(data['data']);
+      return deserialize<_i11.StreamHeartbeat>(data['data']);
     }
     if (dataClassName == 'StreamMetadata') {
-      return deserialize<_i11.StreamMetadata>(data['data']);
+      return deserialize<_i12.StreamMetadata>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -390,8 +404,8 @@ class Protocol extends _i1.SerializationManagerServer {
     switch (t) {
       case _i8.OverlayPreset:
         return _i8.OverlayPreset.t;
-      case _i11.StreamMetadata:
-        return _i11.StreamMetadata.t;
+      case _i12.StreamMetadata:
+        return _i12.StreamMetadata.t;
     }
     return null;
   }

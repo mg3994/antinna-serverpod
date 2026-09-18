@@ -18,8 +18,7 @@ import '../endpoints/overlay_preset_endpoint.dart' as _i4;
 import '../endpoints/stream_metadata_endpoint.dart' as _i5;
 import '../greetings/greeting_endpoint.dart' as _i6;
 import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i7;
-import 'package:stream_studio_server/src/generated/stream_metadata.dart'
-    as _i8;
+import 'package:stream_studio_server/src/generated/stream_metadata.dart' as _i8;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _i9;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'

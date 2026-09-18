@@ -23,6 +23,7 @@ class _CameraStudioViewState extends State<CameraStudioView> {
   MediaStream? _localStream;
   RTCPeerConnection? _peerConnection;
   OverlayConfig? _activeOverlay;
+  String _activeScene = 'camera'; // "camera", "color_bars", "black_slate"
   bool _isConnected = false;
   double _currentZoom = 1.0;
   bool _isTorchOn = false;
@@ -71,6 +72,8 @@ class _CameraStudioViewState extends State<CameraStudioView> {
           setState(() => _activeOverlay = message);
         } else if (message is CameraControl) {
           _applyHardwareControls(message);
+        } else if (message is SceneControl) {
+          setState(() => _activeScene = message.activeScene);
         } else if (message is SignalingMessage) {
           _handleSignalingMessage(message);
         }
@@ -214,6 +217,54 @@ class _CameraStudioViewState extends State<CameraStudioView> {
     return fallback;
   }
 
+  Widget _buildSceneBackground() {
+    if (_activeScene == 'black_slate') {
+      return Container(color: Colors.black);
+    } else if (_activeScene == 'color_bars') {
+      return Container(
+        color: Colors.grey[900],
+        child: Column(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Row(
+                children: [
+                  Expanded(child: Container(color: const Color(0xffc0c0c0))),
+                  Expanded(child: Container(color: const Color(0xffc0c000))),
+                  Expanded(child: Container(color: const Color(0xff00c0c0))),
+                  Expanded(child: Container(color: const Color(0xff00c000))),
+                  Expanded(child: Container(color: const Color(0xffc000c0))),
+                  Expanded(child: Container(color: const Color(0xffc00000))),
+                  Expanded(child: Container(color: const Color(0xff0000c0))),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Container(
+                color: Colors.black,
+                center: const Text(
+                  'SMPTE COLOR BARS • STANDBY SLATE',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Default Camera feed
+    return RTCVideoView(
+      _localRenderer,
+      mirror: _activeCameraIndex == 1,
+      objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+    );
+  }
+
   Widget _buildOverlayContent(OverlayConfig overlay) {
     final bgColor = _parseColor(overlay.backgroundColor, const Color(0xffe50914));
     final textColor = _parseColor(overlay.textColor, Colors.white);
@@ -293,7 +344,7 @@ class _CameraStudioViewState extends State<CameraStudioView> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAlignment.start,
+        crossAlignment: CrossAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
@@ -346,12 +397,11 @@ class _CameraStudioViewState extends State<CameraStudioView> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Background Layer: Native Camera Feed
+          // Background Layer: Active Scene (Camera Feed vs Color Bars Slate vs Black Slate)
           Positioned.fill(
-            child: RTCVideoView(
-              _localRenderer,
-              mirror: _activeCameraIndex == 1,
-              objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              child: _buildSceneBackground(),
             ),
           ),
 

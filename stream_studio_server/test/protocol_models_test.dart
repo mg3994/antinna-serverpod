@@ -144,5 +144,23 @@ void main() {
       expect(deserialized.isLive, equals(true));
       expect(deserialized.viewerCount, equals(150));
     });
+
+    test('SceneControl serialization and deserialization', () {
+      final scene = SceneControl(
+        streamId: 'room_1',
+        activeScene: 'color_bars',
+        transitionType: 'fade',
+      );
+
+      final json = scene.toJson();
+      expect(json['streamId'], equals('room_1'));
+      expect(json['activeScene'], equals('color_bars'));
+      expect(json['transitionType'], equals('fade'));
+
+      final deserialized = SceneControl.fromJson(json);
+      expect(deserialized.streamId, equals('room_1'));
+      expect(deserialized.activeScene, equals('color_bars'));
+      expect(deserialized.transitionType, equals('fade'));
+    });
   });
 }
