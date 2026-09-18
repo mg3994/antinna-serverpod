@@ -149,6 +149,14 @@ class StudioController {
     return await client.rtmpDestination.saveDestination(destination);
   }
 
+  Future<bool> startCasting() async {
+    return await client.rtmpDestination.startCasting(streamId);
+  }
+
+  Future<bool> stopCasting() async {
+    return await client.rtmpDestination.stopCasting(streamId);
+  }
+
   /// Server-side MP4 recording operations
   Future<RecordingSession> startRecording() async {
     return await client.recordingSession.startRecording(streamId);

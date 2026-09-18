@@ -1,8 +1,9 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
+import '../services/rtmp_relay_service.dart';
 
 class RtmpDestinationEndpoint extends Endpoint {
-  /// Save or update an RTMP destination for YouTube Live
+  /// Save or update an RTMP destination for YouTube Live / Social Platforms
   Future<RtmpDestination> saveDestination(
     Session session,
     RtmpDestination destination,
@@ -23,5 +24,33 @@ class RtmpDestinationEndpoint extends Endpoint {
       session,
       where: (t) => t.streamId.equals(streamId),
     );
+  }
+
+  /// Start server-side RTMP/RTMPS casting process to YouTube Live / Twitch / Facebook Live
+  Future<bool> startCasting(
+    Session session,
+    String streamId,
+  ) async {
+    final destination = await getDestination(session, streamId);
+    if (destination == null || destination.streamKey.isEmpty) return false;
+
+    String fullRtmpUrl = destination.ingestionUrl.trim();
+    if (!fullRtmpUrl.endsWith('/')) {
+      fullRtmpUrl += '/';
+    }
+    fullRtmpUrl += destination.streamKey.trim();
+
+    return await RtmpRelayService.instance.startRelay(
+      streamId: streamId,
+      targetRtmpUrl: fullRtmpUrl,
+    );
+  }
+
+  /// Stop server-side RTMP/RTMPS casting process
+  Future<bool> stopCasting(
+    Session session,
+    String streamId,
+  ) async {
+    return await RtmpRelayService.instance.stopRelay(streamId);
   }
 }

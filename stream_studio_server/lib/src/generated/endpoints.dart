@@ -459,6 +459,46 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['streamId'],
                       ),
         ),
+        'startCasting': _i1.MethodConnector(
+          name: 'startCasting',
+          params: {
+            'streamId': _i1.ParameterDescription(
+              name: 'streamId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['rtmpDestination'] as _i6.RtmpDestinationEndpoint)
+                      .startCasting(
+                        session,
+                        params['streamId'],
+                      ),
+        ),
+        'stopCasting': _i1.MethodConnector(
+          name: 'stopCasting',
+          params: {
+            'streamId': _i1.ParameterDescription(
+              name: 'streamId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['rtmpDestination'] as _i6.RtmpDestinationEndpoint)
+                      .stopCasting(
+                        session,
+                        params['streamId'],
+                      ),
+        ),
       },
     );
     connectors['streamMetadata'] = _i1.EndpointConnector(

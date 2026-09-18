@@ -317,7 +317,7 @@ class EndpointRtmpDestination extends _i2.EndpointRef {
   @override
   String get name => 'rtmpDestination';
 
-  /// Save or update an RTMP destination for YouTube Live
+  /// Save or update an RTMP destination for YouTube Live / Social Platforms
   _i3.Future<_i7.RtmpDestination> saveDestination(
     _i7.RtmpDestination destination,
   ) => caller.callServerEndpoint<_i7.RtmpDestination>(
@@ -331,6 +331,22 @@ class EndpointRtmpDestination extends _i2.EndpointRef {
       caller.callServerEndpoint<_i7.RtmpDestination?>(
         'rtmpDestination',
         'getDestination',
+        {'streamId': streamId},
+      );
+
+  /// Start server-side RTMP/RTMPS casting process to YouTube Live / Twitch / Facebook Live
+  _i3.Future<bool> startCasting(String streamId) =>
+      caller.callServerEndpoint<bool>(
+        'rtmpDestination',
+        'startCasting',
+        {'streamId': streamId},
+      );
+
+  /// Stop server-side RTMP/RTMPS casting process
+  _i3.Future<bool> stopCasting(String streamId) =>
+      caller.callServerEndpoint<bool>(
+        'rtmpDestination',
+        'stopCasting',
         {'streamId': streamId},
       );
 }

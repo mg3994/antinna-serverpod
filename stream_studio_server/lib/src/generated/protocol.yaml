@@ -20,6 +20,8 @@ recordingSession:
 rtmpDestination:
   - saveDestination:
   - getDestination:
+  - startCasting:
+  - stopCasting:
 streamMetadata:
   - saveMetadata:
   - getMetadata:

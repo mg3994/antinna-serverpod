@@ -390,7 +390,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
           final isWide = constraints.maxWidth > 900;
           return isWide
               ? Row(
-                  crossAxisAlignment: CrossAlignment.start,
+                  crossAlignment: CrossAlignment.start,
                   children: [
                     Expanded(flex: 3, child: _buildPreviewViewport()),
                     Expanded(flex: 2, child: _buildControlPanel()),
@@ -746,6 +746,11 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                           streamKey: _rtmpKeyController.text,
                           isEnabled: val,
                         );
+                        if (val) {
+                          await _controller.startCasting();
+                        } else {
+                          await _controller.stopCasting();
+                        }
                       },
                     ),
                   ],
