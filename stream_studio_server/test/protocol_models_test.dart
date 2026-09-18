@@ -118,5 +118,31 @@ void main() {
       expect(deserialized.resolution, equals('1280x720'));
       expect(deserialized.audioLevel, equals(0.85));
     });
+
+    test('StreamMetadata serialization and deserialization', () {
+      final metadata = StreamMetadata(
+        id: 10,
+        streamId: 'room_1',
+        title: 'Keynote Broadcast',
+        description: 'Live presentation',
+        isLive: true,
+        viewerCount: 150,
+        startedAt: DateTime.now(),
+      );
+
+      final json = metadata.toJson();
+      expect(json['id'], equals(10));
+      expect(json['streamId'], equals('room_1'));
+      expect(json['title'], equals('Keynote Broadcast'));
+      expect(json['isLive'], equals(true));
+      expect(json['viewerCount'], equals(150));
+
+      final deserialized = StreamMetadata.fromJson(json);
+      expect(deserialized.id, equals(10));
+      expect(deserialized.streamId, equals('room_1'));
+      expect(deserialized.title, equals('Keynote Broadcast'));
+      expect(deserialized.isLive, equals(true));
+      expect(deserialized.viewerCount, equals(150));
+    });
   });
 }

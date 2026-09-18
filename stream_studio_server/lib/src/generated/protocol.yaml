@@ -13,5 +13,8 @@ overlayPreset:
   - savePreset:
   - listPresets:
   - deletePreset:
+streamMetadata:
+  - saveMetadata:
+  - getMetadata:
 greeting:
   - hello:

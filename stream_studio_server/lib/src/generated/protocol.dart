@@ -23,13 +23,15 @@ import 'overlay_config.dart' as _i7;
 import 'overlay_preset.dart' as _i8;
 import 'signaling_message.dart' as _i9;
 import 'stream_heartbeat.dart' as _i10;
-import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i11;
+import 'stream_metadata.dart' as _i11;
+import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i12;
 export 'camera_control.dart';
 export 'greetings/greeting.dart';
 export 'overlay_config.dart';
 export 'overlay_preset.dart';
 export 'signaling_message.dart';
 export 'stream_heartbeat.dart';
+export 'stream_metadata.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
   Protocol._();
@@ -107,6 +109,74 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       managed: true,
     ),
+    _i2.TableDefinition(
+      name: 'stream_metadata',
+      dartName: 'StreamMetadata',
+      schema: 'public',
+      module: 'stream_studio',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'stream_metadata_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'streamId',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'title',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'description',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'isLive',
+          columnType: _i2.ColumnType.boolean,
+          isNullable: false,
+          dartType: 'bool',
+        ),
+        _i2.ColumnDefinition(
+          name: 'viewerCount',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'startedAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'stream_metadata_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+      ],
+      managed: true,
+    ),
     ..._i3.Protocol.targetTableDefinitions,
     ..._i4.Protocol.targetTableDefinitions,
     ..._i2.Protocol.targetTableDefinitions,
@@ -157,6 +227,9 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i10.StreamHeartbeat) {
       return _i10.StreamHeartbeat.fromJson(data) as T;
     }
+    if (t == _i11.StreamMetadata) {
+      return _i11.StreamMetadata.fromJson(data) as T;
+    }
     if (t == _i1.getType<_i5.CameraControl?>()) {
       return (data != null ? _i5.CameraControl.fromJson(data) : null) as T;
     }
@@ -175,9 +248,12 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i10.StreamHeartbeat?>()) {
       return (data != null ? _i10.StreamHeartbeat.fromJson(data) : null) as T;
     }
-    if (t == List<_i11.OverlayPreset>) {
+    if (t == _i1.getType<_i11.StreamMetadata?>()) {
+      return (data != null ? _i11.StreamMetadata.fromJson(data) : null) as T;
+    }
+    if (t == List<_i12.OverlayPreset>) {
       return (data as List)
-              .map((e) => deserialize<_i11.OverlayPreset>(e))
+              .map((e) => deserialize<_i12.OverlayPreset>(e))
               .toList()
           as T;
     }
@@ -201,6 +277,7 @@ class Protocol extends _i1.SerializationManagerServer {
       _i8.OverlayPreset => 'OverlayPreset',
       _i9.SignalingMessage => 'SignalingMessage',
       _i10.StreamHeartbeat => 'StreamHeartbeat',
+      _i11.StreamMetadata => 'StreamMetadata',
       _ => null,
     };
   }
@@ -230,6 +307,8 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'SignalingMessage';
       case _i10.StreamHeartbeat():
         return 'StreamHeartbeat';
+      case _i11.StreamMetadata():
+        return 'StreamMetadata';
     }
     className = _i2.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -270,6 +349,9 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'StreamHeartbeat') {
       return deserialize<_i10.StreamHeartbeat>(data['data']);
     }
+    if (dataClassName == 'StreamMetadata') {
+      return deserialize<_i11.StreamMetadata>(data['data']);
+    }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
       return _i2.Protocol().deserializeByClassName(data);
@@ -308,6 +390,8 @@ class Protocol extends _i1.SerializationManagerServer {
     switch (t) {
       case _i8.OverlayPreset:
         return _i8.OverlayPreset.t;
+      case _i11.StreamMetadata:
+        return _i11.StreamMetadata.t;
     }
     return null;
   }

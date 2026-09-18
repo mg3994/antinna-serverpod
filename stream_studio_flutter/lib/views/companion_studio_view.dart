@@ -26,6 +26,11 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   bool _isConnected = false;
   StreamHeartbeat? _latestHeartbeat;
 
+  // Stream Metadata State
+  final _streamTitleController = TextEditingController(text: 'Live Studio Broadcast');
+  final _streamDescController = TextEditingController(text: 'Streaming via StreamStudio Serverpod engine');
+  bool _isBroadcastingLive = false;
+
   // Lower-Third Editor Form State
   final _titleController = TextEditingController(text: 'Live Studio News');
   final _subtitleController = TextEditingController(
@@ -98,7 +103,23 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       debugPrint('Error opening websocket streaming connection: $e');
     }
 
+    _loadMetadata();
     _loadPresets();
+  }
+
+  Future<void> _loadMetadata() async {
+    try {
+      final meta = await _controller.getMetadata();
+      if (meta != null) {
+        setState(() {
+          _streamTitleController.text = meta.title;
+          _streamDescController.text = meta.description;
+          _isBroadcastingLive = meta.isLive;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading stream metadata: $e');
+    }
   }
 
   Future<void> _loadPresets() async {
@@ -321,10 +342,10 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                 color: Colors.black80,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text(
-                'LIVE PROGRAM PREVIEW',
+              child: Text(
+                _isBroadcastingLive ? 'ON AIR (LIVE BROADCAST)' : 'PREVIEW / STANDBY',
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: _isBroadcastingLive ? Colors.red : Colors.amber,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),
@@ -374,8 +395,10 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAlignment.start,
+        crossAlignment: CrossAlignment.start,
         children: [
+          _buildStreamMetadataCard(),
+          const SizedBox(height: 24),
           _buildQuickStyleTemplates(),
           const SizedBox(height: 24),
           _buildLowerThirdEditor(),
@@ -388,6 +411,97 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
     );
   }
 
+  Widget _buildStreamMetadataCard() {
+    return Card(
+      color: const Color(0xff1e1e1e),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAlignment: CrossAlignment.start,
+          children: [
+            const Text(
+              'Stream Metadata & Broadcast Status',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _streamTitleController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Stream Title',
+                labelStyle: TextStyle(color: Colors.white70),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _streamDescController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                labelStyle: TextStyle(color: Colors.white70),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      _isBroadcastingLive ? Icons.sensors : Icons.sensors_off,
+                      color: _isBroadcastingLive ? Colors.red : Colors.grey,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _isBroadcastingLive ? 'BROADCAST IS LIVE' : 'BROADCAST IS OFF',
+                      style: TextStyle(
+                        color: _isBroadcastingLive ? Colors.red : Colors.white70,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _isBroadcastingLive ? Colors.grey[800] : Colors.red,
+                  ),
+                  onPressed: () async {
+                    final nextState = !_isBroadcastingLive;
+                    setState(() => _isBroadcastingLive = nextState);
+                    await _controller.saveMetadata(
+                      title: _streamTitleController.text,
+                      description: _streamDescController.text,
+                      isLive: nextState,
+                    );
+                  },
+                  icon: Icon(
+                    _isBroadcastingLive ? Icons.stop : Icons.play_arrow,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    _isBroadcastingLive ? 'END BROADCAST' : 'GO LIVE',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildQuickStyleTemplates() {
     return Card(
       color: const Color(0xff1e1e1e),
@@ -395,7 +509,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAlignment.start,
+          crossAlignment: CrossAlignment.start,
           children: [
             const Text(
               'Quick Studio Templates',
@@ -458,7 +572,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAlignment.start,
+          crossAlignment: CrossAlignment.start,
           children: [
             const Text(
               'Overlay & Lower-Third Editor',
@@ -655,7 +769,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAlignment.start,
+          crossAlignment: CrossAlignment.start,
           children: [
             const Text(
               'Remote Camera & Audio Controls',
@@ -768,7 +882,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAlignment.start,
+          crossAlignment: CrossAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

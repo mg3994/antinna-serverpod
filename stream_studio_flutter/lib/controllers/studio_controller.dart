@@ -54,6 +54,29 @@ class StudioController {
     await client.studio.sendStreamMessage(signalingMessage);
   }
 
+  /// Stream metadata operations
+  Future<StreamMetadata?> getMetadata() async {
+    return await client.streamMetadata.getMetadata(streamId);
+  }
+
+  Future<StreamMetadata> saveMetadata({
+    required String title,
+    required String description,
+    required bool isLive,
+  }) async {
+    final existing = await getMetadata();
+    final metadata = StreamMetadata(
+      id: existing?.id,
+      streamId: streamId,
+      title: title,
+      description: description,
+      isLive: isLive,
+      viewerCount: existing?.viewerCount ?? 1,
+      startedAt: isLive ? (existing?.startedAt ?? DateTime.now()) : null,
+    );
+    return await client.streamMetadata.saveMetadata(metadata);
+  }
+
   /// Preset operations using PostgreSQL ORM endpoint
   Future<OverlayPreset> savePreset(OverlayPreset preset) async {
     return await client.overlayPreset.savePreset(preset);

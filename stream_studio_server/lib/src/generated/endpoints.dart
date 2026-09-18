@@ -15,12 +15,15 @@ import 'package:serverpod/serverpod.dart' as _i1;
 import '../auth/email_idp_endpoint.dart' as _i2;
 import '../auth/jwt_refresh_endpoint.dart' as _i3;
 import '../endpoints/overlay_preset_endpoint.dart' as _i4;
-import '../greetings/greeting_endpoint.dart' as _i5;
-import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i6;
-import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i7;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+import '../endpoints/stream_metadata_endpoint.dart' as _i5;
+import '../greetings/greeting_endpoint.dart' as _i6;
+import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i7;
+import 'package:stream_studio_server/src/generated/stream_metadata.dart'
     as _i8;
+import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
+    as _i9;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i10;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -44,7 +47,13 @@ class Endpoints extends _i1.EndpointDispatch {
           'overlayPreset',
           null,
         ),
-      'greeting': _i5.GreetingEndpoint()
+      'streamMetadata': _i5.StreamMetadataEndpoint()
+        ..initialize(
+          server,
+          'streamMetadata',
+          null,
+        ),
+      'greeting': _i6.GreetingEndpoint()
         ..initialize(
           server,
           'greeting',
@@ -264,7 +273,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'preset': _i1.ParameterDescription(
               name: 'preset',
-              type: _i1.getType<_i6.OverlayPreset>(),
+              type: _i1.getType<_i7.OverlayPreset>(),
               nullable: false,
             ),
           },
@@ -321,6 +330,52 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['streamMetadata'] = _i1.EndpointConnector(
+      name: 'streamMetadata',
+      endpoint: endpoints['streamMetadata']!,
+      methodConnectors: {
+        'saveMetadata': _i1.MethodConnector(
+          name: 'saveMetadata',
+          params: {
+            'metadata': _i1.ParameterDescription(
+              name: 'metadata',
+              type: _i1.getType<_i8.StreamMetadata>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['streamMetadata'] as _i5.StreamMetadataEndpoint)
+                      .saveMetadata(
+                        session,
+                        params['metadata'],
+                      ),
+        ),
+        'getMetadata': _i1.MethodConnector(
+          name: 'getMetadata',
+          params: {
+            'streamId': _i1.ParameterDescription(
+              name: 'streamId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['streamMetadata'] as _i5.StreamMetadataEndpoint)
+                      .getMetadata(
+                        session,
+                        params['streamId'],
+                      ),
+        ),
+      },
+    );
     connectors['greeting'] = _i1.EndpointConnector(
       name: 'greeting',
       endpoint: endpoints['greeting']!,
@@ -338,16 +393,16 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['greeting'] as _i5.GreetingEndpoint).hello(
+              ) async => (endpoints['greeting'] as _i6.GreetingEndpoint).hello(
                 session,
                 params['name'],
               ),
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i7.Endpoints()
+    modules['serverpod_auth_idp'] = _i9.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i8.Endpoints()
+    modules['serverpod_auth_core'] = _i10.Endpoints()
       ..initializeEndpoints(server);
   }
 }
