@@ -15,14 +15,18 @@ import 'package:serverpod/serverpod.dart' as _i1;
 import '../auth/email_idp_endpoint.dart' as _i2;
 import '../auth/jwt_refresh_endpoint.dart' as _i3;
 import '../endpoints/overlay_preset_endpoint.dart' as _i4;
-import '../endpoints/stream_metadata_endpoint.dart' as _i5;
-import '../greetings/greeting_endpoint.dart' as _i6;
-import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i7;
-import 'package:stream_studio_server/src/generated/stream_metadata.dart' as _i8;
-import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
+import '../endpoints/rtmp_destination_endpoint.dart' as _i5;
+import '../endpoints/stream_metadata_endpoint.dart' as _i6;
+import '../greetings/greeting_endpoint.dart' as _i7;
+import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i8;
+import 'package:stream_studio_server/src/generated/rtmp_destination.dart'
     as _i9;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+import 'package:stream_studio_server/src/generated/stream_metadata.dart'
     as _i10;
+import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
+    as _i11;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i12;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -46,13 +50,19 @@ class Endpoints extends _i1.EndpointDispatch {
           'overlayPreset',
           null,
         ),
-      'streamMetadata': _i5.StreamMetadataEndpoint()
+      'rtmpDestination': _i5.RtmpDestinationEndpoint()
+        ..initialize(
+          server,
+          'rtmpDestination',
+          null,
+        ),
+      'streamMetadata': _i6.StreamMetadataEndpoint()
         ..initialize(
           server,
           'streamMetadata',
           null,
         ),
-      'greeting': _i6.GreetingEndpoint()
+      'greeting': _i7.GreetingEndpoint()
         ..initialize(
           server,
           'greeting',
@@ -272,7 +282,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'preset': _i1.ParameterDescription(
               name: 'preset',
-              type: _i1.getType<_i7.OverlayPreset>(),
+              type: _i1.getType<_i8.OverlayPreset>(),
               nullable: false,
             ),
           },
@@ -329,6 +339,52 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['rtmpDestination'] = _i1.EndpointConnector(
+      name: 'rtmpDestination',
+      endpoint: endpoints['rtmpDestination']!,
+      methodConnectors: {
+        'saveDestination': _i1.MethodConnector(
+          name: 'saveDestination',
+          params: {
+            'destination': _i1.ParameterDescription(
+              name: 'destination',
+              type: _i1.getType<_i9.RtmpDestination>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['rtmpDestination'] as _i5.RtmpDestinationEndpoint)
+                      .saveDestination(
+                        session,
+                        params['destination'],
+                      ),
+        ),
+        'getDestination': _i1.MethodConnector(
+          name: 'getDestination',
+          params: {
+            'streamId': _i1.ParameterDescription(
+              name: 'streamId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['rtmpDestination'] as _i5.RtmpDestinationEndpoint)
+                      .getDestination(
+                        session,
+                        params['streamId'],
+                      ),
+        ),
+      },
+    );
     connectors['streamMetadata'] = _i1.EndpointConnector(
       name: 'streamMetadata',
       endpoint: endpoints['streamMetadata']!,
@@ -338,7 +394,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'metadata': _i1.ParameterDescription(
               name: 'metadata',
-              type: _i1.getType<_i8.StreamMetadata>(),
+              type: _i1.getType<_i10.StreamMetadata>(),
               nullable: false,
             ),
           },
@@ -347,7 +403,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['streamMetadata'] as _i5.StreamMetadataEndpoint)
+                  (endpoints['streamMetadata'] as _i6.StreamMetadataEndpoint)
                       .saveMetadata(
                         session,
                         params['metadata'],
@@ -367,7 +423,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['streamMetadata'] as _i5.StreamMetadataEndpoint)
+                  (endpoints['streamMetadata'] as _i6.StreamMetadataEndpoint)
                       .getMetadata(
                         session,
                         params['streamId'],
@@ -392,16 +448,16 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['greeting'] as _i6.GreetingEndpoint).hello(
+              ) async => (endpoints['greeting'] as _i7.GreetingEndpoint).hello(
                 session,
                 params['name'],
               ),
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i9.Endpoints()
+    modules['serverpod_auth_idp'] = _i11.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i10.Endpoints()
+    modules['serverpod_auth_core'] = _i12.Endpoints()
       ..initializeEndpoints(server);
   }
 }

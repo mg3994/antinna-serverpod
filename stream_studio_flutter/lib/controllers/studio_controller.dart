@@ -108,6 +108,29 @@ class StudioController {
     return await client.streamMetadata.saveMetadata(metadata);
   }
 
+  /// YouTube Live & RTMP Destination operations
+  Future<RtmpDestination?> getRtmpDestination() async {
+    return await client.rtmpDestination.getDestination(streamId);
+  }
+
+  Future<RtmpDestination> saveRtmpDestination({
+    required String platformName,
+    required String ingestionUrl,
+    required String streamKey,
+    required bool isEnabled,
+  }) async {
+    final existing = await getRtmpDestination();
+    final destination = RtmpDestination(
+      id: existing?.id,
+      streamId: streamId,
+      platformName: platformName,
+      ingestionUrl: ingestionUrl,
+      streamKey: streamKey,
+      isEnabled: isEnabled,
+    );
+    return await client.rtmpDestination.saveDestination(destination);
+  }
+
   /// Preset operations using PostgreSQL ORM endpoint
   Future<OverlayPreset> savePreset(OverlayPreset preset) async {
     return await client.overlayPreset.savePreset(preset);

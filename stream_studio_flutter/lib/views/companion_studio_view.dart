@@ -31,12 +31,16 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   final _streamDescController = TextEditingController(text: 'Streaming via StreamStudio Serverpod engine');
   bool _isBroadcastingLive = false;
 
+  // YouTube Live & RTMP Destination State
+  final _youtubeUrlController = TextEditingController(text: 'rtmp://a.rtmp.youtube.com/live2');
+  final _youtubeKeyController = TextEditingController();
+  bool _isYoutubeCastingActive = false;
+
   // Active Scene State
   String _activeScene = 'camera'; // "camera", "color_bars", "black_slate"
 
   // Chat & Teleprompter Cue State
   final _chatInputController = TextEditingController();
-  final List<StudioChatMessage> _chatMessages = [];
 
   // Lower-Third Editor Form State
   final _titleController = TextEditingController(text: 'Live Studio News');
@@ -47,7 +51,6 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   String _backgroundColorHex = '#E50914';
   String _textColorHex = '#FFFFFF';
   String _selectedAnimationStyle = 'fade';
-  bool _isOverlayVisible = false;
 
   // Remote Camera Controls State
   double _zoomLevel = 1.0;
@@ -87,11 +90,8 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
           setState(() => _latestHeartbeat = message);
         } else if (message is SceneControl) {
           setState(() => _activeScene = message.activeScene);
-        } else if (message is StudioChatMessage) {
-          setState(() => _chatMessages.add(message));
         } else if (message is OverlayConfig) {
           setState(() {
-            _isOverlayVisible = message.isVisible;
             _titleController.text = message.title;
             _subtitleController.text = message.subtitle;
             _selectedPosition = message.position;
@@ -115,6 +115,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
     }
 
     _loadMetadata();
+    _loadRtmpDestination();
     _loadPresets();
   }
 
@@ -130,6 +131,21 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       }
     } catch (e) {
       debugPrint('Error loading stream metadata: $e');
+    }
+  }
+
+  Future<void> _loadRtmpDestination() async {
+    try {
+      final rtmp = await _controller.getRtmpDestination();
+      if (rtmp != null) {
+        setState(() {
+          _youtubeUrlController.text = rtmp.ingestionUrl;
+          _youtubeKeyController.text = rtmp.streamKey;
+          _isYoutubeCastingActive = rtmp.isEnabled;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading RTMP destination: $e');
     }
   }
 
@@ -202,7 +218,6 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   }
 
   void _pushOverlayLive(bool visible) {
-    setState(() => _isOverlayVisible = visible);
     _controller.sendOverlay(
       title: _titleController.text,
       subtitle: _subtitleController.text,
@@ -380,6 +395,34 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
               ),
             ),
           ),
+          if (_isYoutubeCastingActive)
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red[900],
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.redAccent),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.play_circle_fill, color: Colors.white, size: 14),
+                    SizedBox(width: 6),
+                    Text(
+                      'YOUTUBE LIVE CASTING',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           if (_latestHeartbeat != null)
             Positioned(
               bottom: 12,
@@ -425,6 +468,8 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       child: Column(
         crossAlignment: CrossAlignment.start,
         children: [
+          _buildYoutubeLiveCard(),
+          const SizedBox(height: 24),
           _buildSceneSwitcherCard(),
           const SizedBox(height: 24),
           _buildTeleprompterCueCard(),
@@ -439,6 +484,104 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
           const SizedBox(height: 24),
           _buildPresetManager(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildYoutubeLiveCard() {
+    return Card(
+      color: const Color(0xff1e1e1e),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAlignment: CrossAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.play_circle_fill, color: Colors.red, size: 24),
+                const SizedBox(width: 8),
+                const Text(
+                  'YouTube Live & RTMP Ingestion',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _youtubeUrlController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'YouTube RTMPS Ingestion Server URL',
+                labelStyle: TextStyle(color: Colors.white70),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _youtubeKeyController,
+              obscureText: true,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'YouTube Stream Key (e.g. xxxx-xxxx-xxxx-xxxx)',
+                labelStyle: TextStyle(color: Colors.white70),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Text('Cast to YouTube Live', style: TextStyle(color: Colors.white)),
+                    Switch(
+                      value: _isYoutubeCastingActive,
+                      activeColor: Colors.red,
+                      onChanged: (val) async {
+                        setState(() => _isYoutubeCastingActive = val);
+                        await _controller.saveRtmpDestination(
+                          platformName: 'YouTube Live',
+                          ingestionUrl: _youtubeUrlController.text,
+                          streamKey: _youtubeKeyController.text,
+                          isEnabled: val,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff333333),
+                  ),
+                  onPressed: () async {
+                    await _controller.saveRtmpDestination(
+                      platformName: 'YouTube Live',
+                      ingestionUrl: _youtubeUrlController.text,
+                      streamKey: _youtubeKeyController.text,
+                      isEnabled: _isYoutubeCastingActive,
+                    );
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('YouTube Live destination saved successfully.')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.save, color: Colors.white, size: 16),
+                  label: const Text('Save Settings', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

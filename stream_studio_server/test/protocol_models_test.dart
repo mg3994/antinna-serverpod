@@ -184,5 +184,30 @@ void main() {
       expect(deserialized.message, equals('Wrap up presentation in 30 seconds'));
       expect(deserialized.isDirectorCue, equals(true));
     });
+
+    test('RtmpDestination serialization and deserialization', () {
+      final rtmp = RtmpDestination(
+        id: 5,
+        streamId: 'room_1',
+        platformName: 'YouTube Live',
+        ingestionUrl: 'rtmp://a.rtmp.youtube.com/live2',
+        streamKey: 'abcd-efgh-ijkl-mnop',
+        isEnabled: true,
+      );
+
+      final json = rtmp.toJson();
+      expect(json['id'], equals(5));
+      expect(json['streamId'], equals('room_1'));
+      expect(json['platformName'], equals('YouTube Live'));
+      expect(json['ingestionUrl'], equals('rtmp://a.rtmp.youtube.com/live2'));
+      expect(json['streamKey'], equals('abcd-efgh-ijkl-mnop'));
+      expect(json['isEnabled'], equals(true));
+
+      final deserialized = RtmpDestination.fromJson(json);
+      expect(deserialized.id, equals(5));
+      expect(deserialized.platformName, equals('YouTube Live'));
+      expect(deserialized.ingestionUrl, equals('rtmp://a.rtmp.youtube.com/live2'));
+      expect(deserialized.isEnabled, equals(true));
+    });
   });
 }

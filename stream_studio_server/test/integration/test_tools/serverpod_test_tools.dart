@@ -17,9 +17,11 @@ import 'dart:async' as _i3;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
 import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i5;
-import 'package:stream_studio_server/src/generated/stream_metadata.dart' as _i6;
+import 'package:stream_studio_server/src/generated/rtmp_destination.dart'
+    as _i6;
+import 'package:stream_studio_server/src/generated/stream_metadata.dart' as _i7;
 import 'package:stream_studio_server/src/generated/greetings/greeting.dart'
-    as _i7;
+    as _i8;
 import 'package:stream_studio_server/src/generated/protocol.dart';
 import 'package:stream_studio_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -140,6 +142,8 @@ class TestEndpoints {
 
   late final _OverlayPresetEndpoint overlayPreset;
 
+  late final _RtmpDestinationEndpoint rtmpDestination;
+
   late final _StreamMetadataEndpoint streamMetadata;
 
   late final _GreetingEndpoint greeting;
@@ -161,6 +165,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     overlayPreset = _OverlayPresetEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    rtmpDestination = _RtmpDestinationEndpoint(
       endpoints,
       serializationManager,
     );
@@ -597,6 +605,79 @@ class _OverlayPresetEndpoint {
   }
 }
 
+class _RtmpDestinationEndpoint {
+  _RtmpDestinationEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i6.RtmpDestination> saveDestination(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i6.RtmpDestination destination,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'rtmpDestination',
+            method: 'saveDestination',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'rtmpDestination',
+          methodName: 'saveDestination',
+          parameters: _i1.testObjectToJson({'destination': destination}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i6.RtmpDestination>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i6.RtmpDestination?> getDestination(
+    _i1.TestSessionBuilder sessionBuilder,
+    String streamId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'rtmpDestination',
+            method: 'getDestination',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'rtmpDestination',
+          methodName: 'getDestination',
+          parameters: _i1.testObjectToJson({'streamId': streamId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i6.RtmpDestination?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _StreamMetadataEndpoint {
   _StreamMetadataEndpoint(
     this._endpointDispatch,
@@ -607,9 +688,9 @@ class _StreamMetadataEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i6.StreamMetadata> saveMetadata(
+  _i3.Future<_i7.StreamMetadata> saveMetadata(
     _i1.TestSessionBuilder sessionBuilder,
-    _i6.StreamMetadata metadata,
+    _i7.StreamMetadata metadata,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -630,7 +711,7 @@ class _StreamMetadataEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.StreamMetadata>);
+                as _i3.Future<_i7.StreamMetadata>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -638,7 +719,7 @@ class _StreamMetadataEndpoint {
     });
   }
 
-  _i3.Future<_i6.StreamMetadata?> getMetadata(
+  _i3.Future<_i7.StreamMetadata?> getMetadata(
     _i1.TestSessionBuilder sessionBuilder,
     String streamId,
   ) async {
@@ -661,7 +742,7 @@ class _StreamMetadataEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.StreamMetadata?>);
+                as _i3.Future<_i7.StreamMetadata?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -680,7 +761,7 @@ class _GreetingEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i7.Greeting> hello(
+  _i3.Future<_i8.Greeting> hello(
     _i1.TestSessionBuilder sessionBuilder,
     String name,
   ) async {
@@ -703,7 +784,7 @@ class _GreetingEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.Greeting>);
+                as _i3.Future<_i8.Greeting>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
