@@ -35,7 +35,8 @@ class StudioEndpoint extends StreamingEndpoint {
         message is SignalingMessage ||
         message is StreamHeartbeat ||
         message is SceneControl ||
-        message is StudioChatMessage) {
+        message is StudioChatMessage ||
+        message is AudioMixerControl) {
       session.messages.postMessage(
         '$_channelPrefix$streamId',
         message,

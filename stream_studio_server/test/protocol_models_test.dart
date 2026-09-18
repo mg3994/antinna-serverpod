@@ -54,6 +54,30 @@ void main() {
       expect(deserialized.isMuted, equals(true));
     });
 
+    test('AudioMixerControl serialization and deserialization', () {
+      final mixer = AudioMixerControl(
+        streamId: 'room_1',
+        micGain: 1.5,
+        bgmVolume: 0.8,
+        sfxVolume: 0.6,
+        isMuted: false,
+      );
+
+      final json = mixer.toJson();
+      expect(json['streamId'], equals('room_1'));
+      expect(json['micGain'], equals(1.5));
+      expect(json['bgmVolume'], equals(0.8));
+      expect(json['sfxVolume'], equals(0.6));
+      expect(json['isMuted'], equals(false));
+
+      final deserialized = AudioMixerControl.fromJson(json);
+      expect(deserialized.streamId, equals('room_1'));
+      expect(deserialized.micGain, equals(1.5));
+      expect(deserialized.bgmVolume, equals(0.8));
+      expect(deserialized.sfxVolume, equals(0.6));
+      expect(deserialized.isMuted, equals(false));
+    });
+
     test('SignalingMessage serialization and deserialization', () {
       final signal = SignalingMessage(
         senderId: 'mobile_camera',

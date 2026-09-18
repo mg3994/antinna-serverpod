@@ -1,0 +1,7 @@
+class: AudioMixerControl
+fields:
+  streamId: String
+  micGain: double # 0.0 to 2.0
+  bgmVolume: double # 0.0 to 1.0
+  sfxVolume: double # 0.0 to 1.0
+  isMuted: bool

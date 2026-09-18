@@ -39,6 +39,12 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   // Active Scene State
   String _activeScene = 'camera'; // "camera", "color_bars", "black_slate"
 
+  // Audio Mixer State
+  double _micGain = 1.0;
+  double _bgmVolume = 0.8;
+  double _sfxVolume = 0.9;
+  bool _isAudioMuted = false;
+
   // Chat & Teleprompter Cue State
   final _chatInputController = TextEditingController();
 
@@ -55,7 +61,6 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   // Remote Camera Controls State
   double _zoomLevel = 1.0;
   bool _torchOn = false;
-  bool _isAudioMuted = false;
   int _activeCameraIndex = 0; // 0 = Back, 1 = Front
 
   // Overlay Presets
@@ -90,6 +95,13 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
           setState(() => _latestHeartbeat = message);
         } else if (message is SceneControl) {
           setState(() => _activeScene = message.activeScene);
+        } else if (message is AudioMixerControl) {
+          setState(() {
+            _micGain = message.micGain;
+            _bgmVolume = message.bgmVolume;
+            _sfxVolume = message.sfxVolume;
+            _isAudioMuted = message.isMuted;
+          });
         } else if (message is OverlayConfig) {
           setState(() {
             _titleController.text = message.title;
@@ -234,6 +246,15 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       zoomLevel: _zoomLevel,
       torchOn: _torchOn,
       activeCameraIndex: _activeCameraIndex,
+      isMuted: _isAudioMuted,
+    );
+  }
+
+  void _updateAudioMixerControl() {
+    _controller.updateAudioMixer(
+      micGain: _micGain,
+      bgmVolume: _bgmVolume,
+      sfxVolume: _sfxVolume,
       isMuted: _isAudioMuted,
     );
   }
@@ -468,6 +489,8 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       child: Column(
         crossAlignment: CrossAlignment.start,
         children: [
+          _buildAudioMixerCard(),
+          const SizedBox(height: 24),
           _buildYoutubeLiveCard(),
           const SizedBox(height: 24),
           _buildSceneSwitcherCard(),
@@ -484,6 +507,109 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
           const SizedBox(height: 24),
           _buildPresetManager(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAudioMixerCard() {
+    return Card(
+      color: const Color(0xff1e1e1e),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAlignment: CrossAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Multi-Channel Audio Mixer',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Icon(
+                      _isAudioMuted ? Icons.volume_off : Icons.volume_up,
+                      color: _isAudioMuted ? Colors.redAccent : Colors.greenAccent,
+                    ),
+                    const SizedBox(width: 4),
+                    Switch(
+                      value: _isAudioMuted,
+                      activeColor: Colors.red,
+                      onChanged: (val) {
+                        setState(() => _isAudioMuted = val);
+                        _updateAudioMixerControl();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const SizedBox(width: 80, child: Text('Mic Gain', style: TextStyle(color: Colors.white))),
+                Expanded(
+                  child: Slider(
+                    value: _micGain,
+                    min: 0.0,
+                    max: 2.0,
+                    divisions: 20,
+                    activeColor: Colors.red,
+                    onChanged: (val) {
+                      setState(() => _micGain = val);
+                      _updateAudioMixerControl();
+                    },
+                  ),
+                ),
+                Text('${(_micGain * 100).toInt()}%', style: const TextStyle(color: Colors.white70)),
+              ],
+            ),
+            Row(
+              children: [
+                const SizedBox(width: 80, child: Text('BGM Vol', style: TextStyle(color: Colors.white))),
+                Expanded(
+                  child: Slider(
+                    value: _bgmVolume,
+                    min: 0.0,
+                    max: 1.0,
+                    divisions: 20,
+                    activeColor: Colors.blueAccent,
+                    onChanged: (val) {
+                      setState(() => _bgmVolume = val);
+                      _updateAudioMixerControl();
+                    },
+                  ),
+                ),
+                Text('${(_bgmVolume * 100).toInt()}%', style: const TextStyle(color: Colors.white70)),
+              ],
+            ),
+            Row(
+              children: [
+                const SizedBox(width: 80, child: Text('SFX Vol', style: TextStyle(color: Colors.white))),
+                Expanded(
+                  child: Slider(
+                    value: _sfxVolume,
+                    min: 0.0,
+                    max: 1.0,
+                    divisions: 20,
+                    activeColor: Colors.amberAccent,
+                    onChanged: (val) {
+                      setState(() => _sfxVolume = val);
+                      _updateAudioMixerControl();
+                    },
+                  ),
+                ),
+                Text('${(_sfxVolume * 100).toInt()}%', style: const TextStyle(color: Colors.white70)),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

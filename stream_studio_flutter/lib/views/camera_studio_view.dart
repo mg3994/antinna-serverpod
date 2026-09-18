@@ -29,6 +29,7 @@ class _CameraStudioViewState extends State<CameraStudioView> {
   double _currentZoom = 1.0;
   bool _isTorchOn = false;
   bool _isAudioMuted = false;
+  double _micGain = 1.0;
   int _activeCameraIndex = 0; // 0 = Back, 1 = Front
   Timer? _heartbeatTimer;
   Timer? _cueTimer;
@@ -76,6 +77,12 @@ class _CameraStudioViewState extends State<CameraStudioView> {
           _applyHardwareControls(message);
         } else if (message is SceneControl) {
           setState(() => _activeScene = message.activeScene);
+        } else if (message is AudioMixerControl) {
+          setState(() {
+            _micGain = message.micGain;
+            _isAudioMuted = message.isMuted;
+          });
+          _applyAudioMixer(message);
         } else if (message is StudioChatMessage) {
           if (message.isDirectorCue == true) {
             _showDirectorCue(message.message);
@@ -93,6 +100,13 @@ class _CameraStudioViewState extends State<CameraStudioView> {
     }
   }
 
+  void _applyAudioMixer(AudioMixerControl mixer) {
+    final audioTrack = _localStream?.getAudioTracks().firstOrNull;
+    if (audioTrack != null) {
+      audioTrack.enabled = !mixer.isMuted;
+    }
+  }
+
   void _showDirectorCue(String cueText) {
     _cueTimer?.cancel();
     setState(() => _directorCueMessage = cueText);
@@ -107,7 +121,7 @@ class _CameraStudioViewState extends State<CameraStudioView> {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!_isConnected) return;
-      final double simulatedAudioLevel = _isAudioMuted ? 0.0 : (0.4 + _random.nextDouble() * 0.5);
+      final double simulatedAudioLevel = _isAudioMuted ? 0.0 : ((0.3 + _random.nextDouble() * 0.5) * _micGain).clamp(0.0, 1.0);
       widget.client.studio.sendStreamMessage(
         StreamHeartbeat(
           streamId: widget.streamId,

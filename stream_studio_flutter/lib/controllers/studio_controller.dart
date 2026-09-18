@@ -49,6 +49,24 @@ class StudioController {
     await client.studio.sendStreamMessage(control);
   }
 
+  /// Sends multi-channel audio mixer controls (Mic Gain, BGM, SFX)
+  Future<void> updateAudioMixer({
+    required double micGain,
+    required double bgmVolume,
+    required double sfxVolume,
+    required bool isMuted,
+  }) async {
+    final mixer = AudioMixerControl(
+      streamId: streamId,
+      micGain: micGain,
+      bgmVolume: bgmVolume,
+      sfxVolume: sfxVolume,
+      isMuted: isMuted,
+    );
+
+    await client.studio.sendStreamMessage(mixer);
+  }
+
   /// Sends scene switching commands (Camera, Color Bars, Black Slate)
   Future<void> sendSceneControl({
     required String activeScene,
