@@ -40,10 +40,11 @@ class RtmpDestinationEndpoint extends Endpoint {
     }
     fullRtmpUrl += destination.streamKey.trim();
 
-    return await RtmpRelayService.instance.startRelay(
+    final res = await RtmpRelayService.instance.startRelay(
       streamId: streamId,
       targetRtmpUrl: fullRtmpUrl,
     );
+    return res['success'] == true;
   }
 
   /// Stop server-side RTMP/RTMPS casting process
@@ -52,5 +53,17 @@ class RtmpDestinationEndpoint extends Endpoint {
     String streamId,
   ) async {
     return await RtmpRelayService.instance.stopRelay(streamId);
+  }
+
+  /// Check server RTMP engine capabilities and active status
+  Future<String> getRelayStatus(
+    Session session,
+    String streamId,
+  ) async {
+    final isFfmpeg = await RtmpRelayService.instance.checkFfmpegInstalled();
+    final isRelayActive = RtmpRelayService.instance.isRelayActive(streamId);
+    final engine = RtmpRelayService.instance.getRelayEngine(streamId);
+
+    return 'ACTIVE: $isRelayActive | ENGINE: $engine | FFMPEG_SYSTEM: $isFfmpeg';
   }
 }

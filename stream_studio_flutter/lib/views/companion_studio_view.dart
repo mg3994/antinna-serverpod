@@ -36,6 +36,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   final _rtmpUrlController = TextEditingController(text: 'rtmp://a.rtmp.youtube.com/live2');
   final _rtmpKeyController = TextEditingController();
   bool _isRtmpCastingActive = false;
+  String _relayEngineStatus = 'ENGINE: CHECKING...';
 
   // Server MP4 Recording State
   bool _isRecordingMp4 = false;
@@ -156,13 +157,17 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   Future<void> _loadRtmpDestination() async {
     try {
       final rtmp = await _controller.getRtmpDestination();
+      final status = await _controller.getRelayStatus();
       if (rtmp != null) {
         setState(() {
           _selectedPlatform = rtmp.platformName;
           _rtmpUrlController.text = rtmp.ingestionUrl;
           _rtmpKeyController.text = rtmp.streamKey;
           _isRtmpCastingActive = rtmp.isEnabled;
+          _relayEngineStatus = status;
         });
+      } else {
+        setState(() => _relayEngineStatus = status);
       }
     } catch (e) {
       debugPrint('Error loading RTMP destination: $e');
@@ -673,13 +678,34 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
         child: Column(
           crossAlignment: CrossAlignment.start,
           children: [
-            const Text(
-              'Social Media & Multi-Platform RTMP Destinations',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Social Media & RTMP Casting',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: Text(
+                    _relayEngineStatus,
+                    style: const TextStyle(
+                      color: Colors.greenAccent,
+                      fontSize: 10,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
@@ -751,6 +777,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                         } else {
                           await _controller.stopCasting();
                         }
+                        _loadRtmpDestination();
                       },
                     ),
                   ],

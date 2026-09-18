@@ -22,6 +22,7 @@ rtmpDestination:
   - getDestination:
   - startCasting:
   - stopCasting:
+  - getRelayStatus:
 streamMetadata:
   - saveMetadata:
   - getMetadata:

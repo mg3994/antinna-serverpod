@@ -157,6 +157,10 @@ class StudioController {
     return await client.rtmpDestination.stopCasting(streamId);
   }
 
+  Future<String> getRelayStatus() async {
+    return await client.rtmpDestination.getRelayStatus(streamId);
+  }
+
   /// Server-side MP4 recording operations
   Future<RecordingSession> startRecording() async {
     return await client.recordingSession.startRecording(streamId);
