@@ -24,12 +24,14 @@ class _CameraStudioViewState extends State<CameraStudioView> {
   RTCPeerConnection? _peerConnection;
   OverlayConfig? _activeOverlay;
   String _activeScene = 'camera'; // "camera", "color_bars", "black_slate"
+  String? _directorCueMessage;
   bool _isConnected = false;
   double _currentZoom = 1.0;
   bool _isTorchOn = false;
   bool _isAudioMuted = false;
   int _activeCameraIndex = 0; // 0 = Back, 1 = Front
   Timer? _heartbeatTimer;
+  Timer? _cueTimer;
   final String _deviceId = 'cam_${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
   final Random _random = Random();
 
@@ -74,6 +76,10 @@ class _CameraStudioViewState extends State<CameraStudioView> {
           _applyHardwareControls(message);
         } else if (message is SceneControl) {
           setState(() => _activeScene = message.activeScene);
+        } else if (message is StudioChatMessage) {
+          if (message.isDirectorCue == true) {
+            _showDirectorCue(message.message);
+          }
         } else if (message is SignalingMessage) {
           _handleSignalingMessage(message);
         }
@@ -85,6 +91,16 @@ class _CameraStudioViewState extends State<CameraStudioView> {
     } catch (e) {
       debugPrint('Error connecting to Serverpod streaming endpoint: $e');
     }
+  }
+
+  void _showDirectorCue(String cueText) {
+    _cueTimer?.cancel();
+    setState(() => _directorCueMessage = cueText);
+    _cueTimer = Timer(const Duration(seconds: 6), () {
+      if (mounted) {
+        setState(() => _directorCueMessage = null);
+      }
+    });
   }
 
   void _startHeartbeatTimer() {
@@ -242,7 +258,8 @@ class _CameraStudioViewState extends State<CameraStudioView> {
             Expanded(
               child: Container(
                 color: Colors.black,
-                center: const Text(
+                alignment: Alignment.center,
+                child: const Text(
                   'SMPTE COLOR BARS • STANDBY SLATE',
                   style: TextStyle(
                     color: Colors.white,
@@ -445,6 +462,42 @@ class _CameraStudioViewState extends State<CameraStudioView> {
             ),
           ),
 
+          // Teleprompter / Director Cue Banner
+          if (_directorCueMessage != null)
+            Positioned(
+              top: 85,
+              left: 20,
+              right: 20,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10)],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.record_voice_over, color: Colors.black, size: 24),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _directorCueMessage!,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
           // Top Layer: Live Overlay Canvas Stack
           if (_activeOverlay != null && _activeOverlay!.isVisible)
             Positioned.fill(
@@ -470,6 +523,7 @@ class _CameraStudioViewState extends State<CameraStudioView> {
   @override
   void dispose() {
     _heartbeatTimer?.cancel();
+    _cueTimer?.cancel();
     _localRenderer.dispose();
     _localStream?.dispose();
     _peerConnection?.dispose();

@@ -162,5 +162,27 @@ void main() {
       expect(deserialized.activeScene, equals('color_bars'));
       expect(deserialized.transitionType, equals('fade'));
     });
+
+    test('StudioChatMessage serialization and deserialization', () {
+      final chat = StudioChatMessage(
+        streamId: 'room_1',
+        senderName: 'Director',
+        message: 'Wrap up presentation in 30 seconds',
+        timestamp: DateTime.now(),
+        isDirectorCue: true,
+      );
+
+      final json = chat.toJson();
+      expect(json['streamId'], equals('room_1'));
+      expect(json['senderName'], equals('Director'));
+      expect(json['message'], equals('Wrap up presentation in 30 seconds'));
+      expect(json['isDirectorCue'], equals(true));
+
+      final deserialized = StudioChatMessage.fromJson(json);
+      expect(deserialized.streamId, equals('room_1'));
+      expect(deserialized.senderName, equals('Director'));
+      expect(deserialized.message, equals('Wrap up presentation in 30 seconds'));
+      expect(deserialized.isDirectorCue, equals(true));
+    });
   });
 }

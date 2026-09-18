@@ -34,6 +34,10 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   // Active Scene State
   String _activeScene = 'camera'; // "camera", "color_bars", "black_slate"
 
+  // Chat & Teleprompter Cue State
+  final _chatInputController = TextEditingController();
+  final List<StudioChatMessage> _chatMessages = [];
+
   // Lower-Third Editor Form State
   final _titleController = TextEditingController(text: 'Live Studio News');
   final _subtitleController = TextEditingController(
@@ -83,6 +87,8 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
           setState(() => _latestHeartbeat = message);
         } else if (message is SceneControl) {
           setState(() => _activeScene = message.activeScene);
+        } else if (message is StudioChatMessage) {
+          setState(() => _chatMessages.add(message));
         } else if (message is OverlayConfig) {
           setState(() {
             _isOverlayVisible = message.isVisible;
@@ -220,6 +226,18 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   void _switchScene(String scene) {
     setState(() => _activeScene = scene);
     _controller.sendSceneControl(activeScene: scene);
+  }
+
+  void _sendProducerChat({required bool isCue}) {
+    final text = _chatInputController.text.trim();
+    if (text.isEmpty) return;
+    _chatInputController.clear();
+
+    _controller.sendChatMessage(
+      senderName: 'Director / Companion',
+      message: text,
+      isDirectorCue: isCue,
+    );
   }
 
   void _applyQuickTemplate(String title, String subtitle, String position, String color, String anim) {
@@ -409,6 +427,8 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
         children: [
           _buildSceneSwitcherCard(),
           const SizedBox(height: 24),
+          _buildTeleprompterCueCard(),
+          const SizedBox(height: 24),
           _buildStreamMetadataCard(),
           const SizedBox(height: 24),
           _buildQuickStyleTemplates(),
@@ -419,6 +439,67 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
           const SizedBox(height: 24),
           _buildPresetManager(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTeleprompterCueCard() {
+    return Card(
+      color: const Color(0xff1e1e1e),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAlignment: CrossAlignment.start,
+          children: [
+            const Text(
+              'Producer Chat & Director Cue Teleprompter',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _chatInputController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Enter cue message for camera operator...',
+                labelStyle: TextStyle(color: Colors.white70),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber[800],
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    onPressed: () => _sendProducerChat(isCue: true),
+                    icon: const Icon(Icons.record_voice_over, color: Colors.white),
+                    label: const Text('SEND DIRECTOR CUE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.white38),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  ),
+                  onPressed: () => _sendProducerChat(isCue: false),
+                  icon: const Icon(Icons.chat, color: Colors.white70),
+                  label: const Text('CHAT ONLY', style: TextStyle(color: Colors.white70)),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

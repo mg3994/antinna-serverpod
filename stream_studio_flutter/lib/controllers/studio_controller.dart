@@ -63,6 +63,23 @@ class StudioController {
     await client.studio.sendStreamMessage(scene);
   }
 
+  /// Sends producer chat / teleprompter cue messages
+  Future<void> sendChatMessage({
+    required String senderName,
+    required String message,
+    bool isDirectorCue = false,
+  }) async {
+    final chatMsg = StudioChatMessage(
+      streamId: streamId,
+      senderName: senderName,
+      message: message,
+      timestamp: DateTime.now(),
+      isDirectorCue: isDirectorCue,
+    );
+
+    await client.studio.sendStreamMessage(chatMsg);
+  }
+
   /// Sends a WebRTC signaling message
   Future<void> sendSignalingMessage(SignalingMessage signalingMessage) async {
     await client.studio.sendStreamMessage(signalingMessage);

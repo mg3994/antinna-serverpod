@@ -25,7 +25,8 @@ import 'scene_control.dart' as _i9;
 import 'signaling_message.dart' as _i10;
 import 'stream_heartbeat.dart' as _i11;
 import 'stream_metadata.dart' as _i12;
-import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i13;
+import 'studio_chat_message.dart' as _i13;
+import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i14;
 export 'camera_control.dart';
 export 'greetings/greeting.dart';
 export 'overlay_config.dart';
@@ -34,6 +35,7 @@ export 'scene_control.dart';
 export 'signaling_message.dart';
 export 'stream_heartbeat.dart';
 export 'stream_metadata.dart';
+export 'studio_chat_message.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
   Protocol._();
@@ -235,6 +237,9 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i12.StreamMetadata) {
       return _i12.StreamMetadata.fromJson(data) as T;
     }
+    if (t == _i13.StudioChatMessage) {
+      return _i13.StudioChatMessage.fromJson(data) as T;
+    }
     if (t == _i1.getType<_i5.CameraControl?>()) {
       return (data != null ? _i5.CameraControl.fromJson(data) : null) as T;
     }
@@ -259,9 +264,12 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i12.StreamMetadata?>()) {
       return (data != null ? _i12.StreamMetadata.fromJson(data) : null) as T;
     }
-    if (t == List<_i13.OverlayPreset>) {
+    if (t == _i1.getType<_i13.StudioChatMessage?>()) {
+      return (data != null ? _i13.StudioChatMessage.fromJson(data) : null) as T;
+    }
+    if (t == List<_i14.OverlayPreset>) {
       return (data as List)
-              .map((e) => deserialize<_i13.OverlayPreset>(e))
+              .map((e) => deserialize<_i14.OverlayPreset>(e))
               .toList()
           as T;
     }
@@ -287,6 +295,7 @@ class Protocol extends _i1.SerializationManagerServer {
       _i10.SignalingMessage => 'SignalingMessage',
       _i11.StreamHeartbeat => 'StreamHeartbeat',
       _i12.StreamMetadata => 'StreamMetadata',
+      _i13.StudioChatMessage => 'StudioChatMessage',
       _ => null,
     };
   }
@@ -320,6 +329,8 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'StreamHeartbeat';
       case _i12.StreamMetadata():
         return 'StreamMetadata';
+      case _i13.StudioChatMessage():
+        return 'StudioChatMessage';
     }
     className = _i2.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -365,6 +376,9 @@ class Protocol extends _i1.SerializationManagerServer {
     }
     if (dataClassName == 'StreamMetadata') {
       return deserialize<_i12.StreamMetadata>(data['data']);
+    }
+    if (dataClassName == 'StudioChatMessage') {
+      return deserialize<_i13.StudioChatMessage>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
