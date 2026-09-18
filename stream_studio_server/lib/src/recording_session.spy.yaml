@@ -1,0 +1,9 @@
+class: RecordingSession
+table: recording_session
+fields:
+  streamId: String
+  fileName: String # e.g. "recording_room1_20260917.mp4"
+  filePath: String # e.g. "/var/stream_studio/recordings/room1/file.mp4"
+  fileSizeBytes: int
+  status: String # "recording", "completed", "failed"
+  recordedAt: DateTime

@@ -31,10 +31,16 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
   final _streamDescController = TextEditingController(text: 'Streaming via StreamStudio Serverpod engine');
   bool _isBroadcastingLive = false;
 
-  // YouTube Live & RTMP Destination State
-  final _youtubeUrlController = TextEditingController(text: 'rtmp://a.rtmp.youtube.com/live2');
-  final _youtubeKeyController = TextEditingController();
-  bool _isYoutubeCastingActive = false;
+  // Multi-Platform RTMP Casting State
+  String _selectedPlatform = 'YouTube Live'; // "YouTube Live", "Facebook Live", "Twitch", "Custom RTMP"
+  final _rtmpUrlController = TextEditingController(text: 'rtmp://a.rtmp.youtube.com/live2');
+  final _rtmpKeyController = TextEditingController();
+  bool _isRtmpCastingActive = false;
+
+  // Server MP4 Recording State
+  bool _isRecordingMp4 = false;
+  int? _activeRecordingId;
+  List<RecordingSession> _recordings = [];
 
   // Active Scene State
   String _activeScene = 'camera'; // "camera", "color_bars", "black_slate"
@@ -128,6 +134,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
 
     _loadMetadata();
     _loadRtmpDestination();
+    _loadRecordings();
     _loadPresets();
   }
 
@@ -151,13 +158,33 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       final rtmp = await _controller.getRtmpDestination();
       if (rtmp != null) {
         setState(() {
-          _youtubeUrlController.text = rtmp.ingestionUrl;
-          _youtubeKeyController.text = rtmp.streamKey;
-          _isYoutubeCastingActive = rtmp.isEnabled;
+          _selectedPlatform = rtmp.platformName;
+          _rtmpUrlController.text = rtmp.ingestionUrl;
+          _rtmpKeyController.text = rtmp.streamKey;
+          _isRtmpCastingActive = rtmp.isEnabled;
         });
       }
     } catch (e) {
       debugPrint('Error loading RTMP destination: $e');
+    }
+  }
+
+  Future<void> _loadRecordings() async {
+    try {
+      final list = await _controller.listRecordings();
+      setState(() {
+        _recordings = list;
+        final active = list.where((r) => r.status == 'recording').firstOrNull;
+        if (active != null) {
+          _isRecordingMp4 = true;
+          _activeRecordingId = active.id;
+        } else {
+          _isRecordingMp4 = false;
+          _activeRecordingId = null;
+        }
+      });
+    } catch (e) {
+      debugPrint('Error loading recordings: $e');
     }
   }
 
@@ -285,6 +312,19 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       _selectedAnimationStyle = anim;
     });
     _pushOverlayLive(true);
+  }
+
+  void _setPlatformPreset(String platform) {
+    setState(() {
+      _selectedPlatform = platform;
+      if (platform == 'YouTube Live') {
+        _rtmpUrlController.text = 'rtmp://a.rtmp.youtube.com/live2';
+      } else if (platform == 'Facebook Live') {
+        _rtmpUrlController.text = 'rtmps://live-api-s.facebook.com:443/rtmp/';
+      } else if (platform == 'Twitch') {
+        _rtmpUrlController.text = 'rtmp://live.twitch.tv/app/';
+      }
+    });
   }
 
   Widget _buildAudioVuMeter(double level) {
@@ -416,7 +456,7 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
               ),
             ),
           ),
-          if (_isYoutubeCastingActive)
+          if (_isRtmpCastingActive)
             Positioned(
               top: 12,
               right: 12,
@@ -427,13 +467,40 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(color: Colors.redAccent),
                 ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.cast_connected, color: Colors.white, size: 14),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${_selectedPlatform.toUpperCase()} LIVE',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (_isRecordingMp4)
+            Positioned(
+              top: 42,
+              left: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red[800],
+                  borderRadius: BorderRadius.circular(4),
+                ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.play_circle_fill, color: Colors.white, size: 14),
+                    Icon(Icons.fiber_manual_record, color: Colors.white, size: 12),
                     SizedBox(width: 6),
                     Text(
-                      'YOUTUBE LIVE CASTING',
+                      'REC MP4 (SERVER)',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 10,
@@ -489,9 +556,11 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
       child: Column(
         crossAlignment: CrossAlignment.start,
         children: [
-          _buildAudioMixerCard(),
+          _buildServerMp4RecordingCard(),
           const SizedBox(height: 24),
-          _buildYoutubeLiveCard(),
+          _buildRtmpDestinationsCard(),
+          const SizedBox(height: 24),
+          _buildAudioMixerCard(),
           const SizedBox(height: 24),
           _buildSceneSwitcherCard(),
           const SizedBox(height: 24),
@@ -507,6 +576,204 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
           const SizedBox(height: 24),
           _buildPresetManager(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildServerMp4RecordingCard() {
+    return Card(
+      color: const Color(0xff1e1e1e),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAlignment: CrossAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.video_library, color: Colors.redAccent, size: 24),
+                    SizedBox(width: 8),
+                    Text(
+                      'Server MP4 Recording',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _isRecordingMp4 ? Colors.grey[800] : Colors.red,
+                  ),
+                  onPressed: () async {
+                    if (_isRecordingMp4 && _activeRecordingId != null) {
+                      await _controller.stopRecording(_activeRecordingId!);
+                      _loadRecordings();
+                    } else {
+                      await _controller.startRecording();
+                      _loadRecordings();
+                    }
+                  },
+                  icon: Icon(
+                    _isRecordingMp4 ? Icons.stop : Icons.fiber_manual_record,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    _isRecordingMp4 ? 'STOP REC' : 'START REC MP4',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (_recordings.isEmpty)
+              const Text(
+                'No server MP4 recordings found for this room.',
+                style: TextStyle(color: Colors.white54, fontSize: 13),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _recordings.length,
+                itemBuilder: (context, index) {
+                  final rec = _recordings[index];
+                  final sizeMb = (rec.fileSizeBytes / (1024 * 1024)).toStringAsFixed(1);
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      rec.status == 'recording' ? Icons.fiber_manual_record : Icons.movie,
+                      color: rec.status == 'recording' ? Colors.red : Colors.greenAccent,
+                    ),
+                    title: Text(rec.fileName, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                    subtitle: Text(
+                      '${rec.status.toUpperCase()} • $sizeMb MB • ${rec.recordedAt.toLocal().toString().substring(0, 16)}',
+                      style: const TextStyle(color: Colors.white54, fontSize: 12),
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRtmpDestinationsCard() {
+    return Card(
+      color: const Color(0xff1e1e1e),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAlignment: CrossAlignment.start,
+          children: [
+            const Text(
+              'Social Media & Multi-Platform RTMP Destinations',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _selectedPlatform,
+              dropdownColor: const Color(0xff2a2a2a),
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Streaming Platform Preset',
+                labelStyle: TextStyle(color: Colors.white70),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'YouTube Live', child: Text('YouTube Live')),
+                DropdownMenuItem(value: 'Facebook Live', child: Text('Facebook Live')),
+                DropdownMenuItem(value: 'Twitch', child: Text('Twitch')),
+                DropdownMenuItem(value: 'Custom RTMP', child: Text('Custom RTMP Server')),
+              ],
+              onChanged: (val) {
+                if (val != null) _setPlatformPreset(val);
+              },
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _rtmpUrlController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'RTMP / RTMPS Ingestion URL',
+                labelStyle: TextStyle(color: Colors.white70),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _rtmpKeyController,
+              obscureText: true,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Platform Stream Key (e.g. xxxx-xxxx-xxxx)',
+                labelStyle: TextStyle(color: Colors.white70),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Text('Enable $_selectedPlatform', style: const TextStyle(color: Colors.white)),
+                    Switch(
+                      value: _isRtmpCastingActive,
+                      activeColor: Colors.red,
+                      onChanged: (val) async {
+                        setState(() => _isRtmpCastingActive = val);
+                        await _controller.saveRtmpDestination(
+                          platformName: _selectedPlatform,
+                          ingestionUrl: _rtmpUrlController.text,
+                          streamKey: _rtmpKeyController.text,
+                          isEnabled: val,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff333333),
+                  ),
+                  onPressed: () async {
+                    await _controller.saveRtmpDestination(
+                      platformName: _selectedPlatform,
+                      ingestionUrl: _rtmpUrlController.text,
+                      streamKey: _rtmpKeyController.text,
+                      isEnabled: _isRtmpCastingActive,
+                    );
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Saved $_selectedPlatform settings.')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.save, color: Colors.white, size: 16),
+                  label: const Text('Save Settings', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -606,104 +873,6 @@ class _CompanionStudioViewState extends State<CompanionStudioView> {
                   ),
                 ),
                 Text('${(_sfxVolume * 100).toInt()}%', style: const TextStyle(color: Colors.white70)),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildYoutubeLiveCard() {
-    return Card(
-      color: const Color(0xff1e1e1e),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAlignment: CrossAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.play_circle_fill, color: Colors.red, size: 24),
-                const SizedBox(width: 8),
-                const Text(
-                  'YouTube Live & RTMP Ingestion',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _youtubeUrlController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'YouTube RTMPS Ingestion Server URL',
-                labelStyle: TextStyle(color: Colors.white70),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white24),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _youtubeKeyController,
-              obscureText: true,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'YouTube Stream Key (e.g. xxxx-xxxx-xxxx-xxxx)',
-                labelStyle: TextStyle(color: Colors.white70),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white24),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Text('Cast to YouTube Live', style: TextStyle(color: Colors.white)),
-                    Switch(
-                      value: _isYoutubeCastingActive,
-                      activeColor: Colors.red,
-                      onChanged: (val) async {
-                        setState(() => _isYoutubeCastingActive = val);
-                        await _controller.saveRtmpDestination(
-                          platformName: 'YouTube Live',
-                          ingestionUrl: _youtubeUrlController.text,
-                          streamKey: _youtubeKeyController.text,
-                          isEnabled: val,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xff333333),
-                  ),
-                  onPressed: () async {
-                    await _controller.saveRtmpDestination(
-                      platformName: 'YouTube Live',
-                      ingestionUrl: _youtubeUrlController.text,
-                      streamKey: _youtubeKeyController.text,
-                      isEnabled: _isYoutubeCastingActive,
-                    );
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('YouTube Live destination saved successfully.')),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.save, color: Colors.white, size: 16),
-                  label: const Text('Save Settings', style: TextStyle(color: Colors.white)),
-                ),
               ],
             ),
           ],

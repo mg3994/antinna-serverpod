@@ -126,7 +126,7 @@ class StudioController {
     return await client.streamMetadata.saveMetadata(metadata);
   }
 
-  /// YouTube Live & RTMP Destination operations
+  /// YouTube Live, Facebook Live, Twitch & Custom RTMP Destination operations
   Future<RtmpDestination?> getRtmpDestination() async {
     return await client.rtmpDestination.getDestination(streamId);
   }
@@ -147,6 +147,19 @@ class StudioController {
       isEnabled: isEnabled,
     );
     return await client.rtmpDestination.saveDestination(destination);
+  }
+
+  /// Server-side MP4 recording operations
+  Future<RecordingSession> startRecording() async {
+    return await client.recordingSession.startRecording(streamId);
+  }
+
+  Future<RecordingSession?> stopRecording(int recordingId) async {
+    return await client.recordingSession.stopRecording(recordingId);
+  }
+
+  Future<List<RecordingSession>> listRecordings() async {
+    return await client.recordingSession.listRecordings(streamId);
   }
 
   /// Preset operations using PostgreSQL ORM endpoint

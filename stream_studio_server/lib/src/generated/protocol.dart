@@ -22,18 +22,22 @@ import 'camera_control.dart' as _i6;
 import 'greetings/greeting.dart' as _i7;
 import 'overlay_config.dart' as _i8;
 import 'overlay_preset.dart' as _i9;
-import 'rtmp_destination.dart' as _i10;
-import 'scene_control.dart' as _i11;
-import 'signaling_message.dart' as _i12;
-import 'stream_heartbeat.dart' as _i13;
-import 'stream_metadata.dart' as _i14;
-import 'studio_chat_message.dart' as _i15;
-import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i16;
+import 'recording_session.dart' as _i10;
+import 'rtmp_destination.dart' as _i11;
+import 'scene_control.dart' as _i12;
+import 'signaling_message.dart' as _i13;
+import 'stream_heartbeat.dart' as _i14;
+import 'stream_metadata.dart' as _i15;
+import 'studio_chat_message.dart' as _i16;
+import 'package:stream_studio_server/src/generated/overlay_preset.dart' as _i17;
+import 'package:stream_studio_server/src/generated/recording_session.dart'
+    as _i18;
 export 'audio_mixer_control.dart';
 export 'camera_control.dart';
 export 'greetings/greeting.dart';
 export 'overlay_config.dart';
 export 'overlay_preset.dart';
+export 'recording_session.dart';
 export 'rtmp_destination.dart';
 export 'scene_control.dart';
 export 'signaling_message.dart';
@@ -103,6 +107,74 @@ class Protocol extends _i1.SerializationManagerServer {
       indexes: [
         _i2.IndexDefinition(
           indexName: 'overlay_preset_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'recording_session',
+      dartName: 'RecordingSession',
+      schema: 'public',
+      module: 'stream_studio',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'recording_session_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'streamId',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'fileName',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'filePath',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'fileSizeBytes',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _i2.ColumnDefinition(
+          name: 'status',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'recordedAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'recording_session_pkey',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
@@ -294,23 +366,26 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i9.OverlayPreset) {
       return _i9.OverlayPreset.fromJson(data) as T;
     }
-    if (t == _i10.RtmpDestination) {
-      return _i10.RtmpDestination.fromJson(data) as T;
+    if (t == _i10.RecordingSession) {
+      return _i10.RecordingSession.fromJson(data) as T;
     }
-    if (t == _i11.SceneControl) {
-      return _i11.SceneControl.fromJson(data) as T;
+    if (t == _i11.RtmpDestination) {
+      return _i11.RtmpDestination.fromJson(data) as T;
     }
-    if (t == _i12.SignalingMessage) {
-      return _i12.SignalingMessage.fromJson(data) as T;
+    if (t == _i12.SceneControl) {
+      return _i12.SceneControl.fromJson(data) as T;
     }
-    if (t == _i13.StreamHeartbeat) {
-      return _i13.StreamHeartbeat.fromJson(data) as T;
+    if (t == _i13.SignalingMessage) {
+      return _i13.SignalingMessage.fromJson(data) as T;
     }
-    if (t == _i14.StreamMetadata) {
-      return _i14.StreamMetadata.fromJson(data) as T;
+    if (t == _i14.StreamHeartbeat) {
+      return _i14.StreamHeartbeat.fromJson(data) as T;
     }
-    if (t == _i15.StudioChatMessage) {
-      return _i15.StudioChatMessage.fromJson(data) as T;
+    if (t == _i15.StreamMetadata) {
+      return _i15.StreamMetadata.fromJson(data) as T;
+    }
+    if (t == _i16.StudioChatMessage) {
+      return _i16.StudioChatMessage.fromJson(data) as T;
     }
     if (t == _i1.getType<_i5.AudioMixerControl?>()) {
       return (data != null ? _i5.AudioMixerControl.fromJson(data) : null) as T;
@@ -327,27 +402,36 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i9.OverlayPreset?>()) {
       return (data != null ? _i9.OverlayPreset.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i10.RtmpDestination?>()) {
-      return (data != null ? _i10.RtmpDestination.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i10.RecordingSession?>()) {
+      return (data != null ? _i10.RecordingSession.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i11.SceneControl?>()) {
-      return (data != null ? _i11.SceneControl.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i11.RtmpDestination?>()) {
+      return (data != null ? _i11.RtmpDestination.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i12.SignalingMessage?>()) {
-      return (data != null ? _i12.SignalingMessage.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i12.SceneControl?>()) {
+      return (data != null ? _i12.SceneControl.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i13.StreamHeartbeat?>()) {
-      return (data != null ? _i13.StreamHeartbeat.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i13.SignalingMessage?>()) {
+      return (data != null ? _i13.SignalingMessage.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i14.StreamMetadata?>()) {
-      return (data != null ? _i14.StreamMetadata.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i14.StreamHeartbeat?>()) {
+      return (data != null ? _i14.StreamHeartbeat.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i15.StudioChatMessage?>()) {
-      return (data != null ? _i15.StudioChatMessage.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i15.StreamMetadata?>()) {
+      return (data != null ? _i15.StreamMetadata.fromJson(data) : null) as T;
     }
-    if (t == List<_i16.OverlayPreset>) {
+    if (t == _i1.getType<_i16.StudioChatMessage?>()) {
+      return (data != null ? _i16.StudioChatMessage.fromJson(data) : null) as T;
+    }
+    if (t == List<_i17.OverlayPreset>) {
       return (data as List)
-              .map((e) => deserialize<_i16.OverlayPreset>(e))
+              .map((e) => deserialize<_i17.OverlayPreset>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i18.RecordingSession>) {
+      return (data as List)
+              .map((e) => deserialize<_i18.RecordingSession>(e))
               .toList()
           as T;
     }
@@ -370,12 +454,13 @@ class Protocol extends _i1.SerializationManagerServer {
       _i7.Greeting => 'Greeting',
       _i8.OverlayConfig => 'OverlayConfig',
       _i9.OverlayPreset => 'OverlayPreset',
-      _i10.RtmpDestination => 'RtmpDestination',
-      _i11.SceneControl => 'SceneControl',
-      _i12.SignalingMessage => 'SignalingMessage',
-      _i13.StreamHeartbeat => 'StreamHeartbeat',
-      _i14.StreamMetadata => 'StreamMetadata',
-      _i15.StudioChatMessage => 'StudioChatMessage',
+      _i10.RecordingSession => 'RecordingSession',
+      _i11.RtmpDestination => 'RtmpDestination',
+      _i12.SceneControl => 'SceneControl',
+      _i13.SignalingMessage => 'SignalingMessage',
+      _i14.StreamHeartbeat => 'StreamHeartbeat',
+      _i15.StreamMetadata => 'StreamMetadata',
+      _i16.StudioChatMessage => 'StudioChatMessage',
       _ => null,
     };
   }
@@ -403,17 +488,19 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'OverlayConfig';
       case _i9.OverlayPreset():
         return 'OverlayPreset';
-      case _i10.RtmpDestination():
+      case _i10.RecordingSession():
+        return 'RecordingSession';
+      case _i11.RtmpDestination():
         return 'RtmpDestination';
-      case _i11.SceneControl():
+      case _i12.SceneControl():
         return 'SceneControl';
-      case _i12.SignalingMessage():
+      case _i13.SignalingMessage():
         return 'SignalingMessage';
-      case _i13.StreamHeartbeat():
+      case _i14.StreamHeartbeat():
         return 'StreamHeartbeat';
-      case _i14.StreamMetadata():
+      case _i15.StreamMetadata():
         return 'StreamMetadata';
-      case _i15.StudioChatMessage():
+      case _i16.StudioChatMessage():
         return 'StudioChatMessage';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -452,23 +539,26 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'OverlayPreset') {
       return deserialize<_i9.OverlayPreset>(data['data']);
     }
+    if (dataClassName == 'RecordingSession') {
+      return deserialize<_i10.RecordingSession>(data['data']);
+    }
     if (dataClassName == 'RtmpDestination') {
-      return deserialize<_i10.RtmpDestination>(data['data']);
+      return deserialize<_i11.RtmpDestination>(data['data']);
     }
     if (dataClassName == 'SceneControl') {
-      return deserialize<_i11.SceneControl>(data['data']);
+      return deserialize<_i12.SceneControl>(data['data']);
     }
     if (dataClassName == 'SignalingMessage') {
-      return deserialize<_i12.SignalingMessage>(data['data']);
+      return deserialize<_i13.SignalingMessage>(data['data']);
     }
     if (dataClassName == 'StreamHeartbeat') {
-      return deserialize<_i13.StreamHeartbeat>(data['data']);
+      return deserialize<_i14.StreamHeartbeat>(data['data']);
     }
     if (dataClassName == 'StreamMetadata') {
-      return deserialize<_i14.StreamMetadata>(data['data']);
+      return deserialize<_i15.StreamMetadata>(data['data']);
     }
     if (dataClassName == 'StudioChatMessage') {
-      return deserialize<_i15.StudioChatMessage>(data['data']);
+      return deserialize<_i16.StudioChatMessage>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -508,10 +598,12 @@ class Protocol extends _i1.SerializationManagerServer {
     switch (t) {
       case _i9.OverlayPreset:
         return _i9.OverlayPreset.t;
-      case _i10.RtmpDestination:
-        return _i10.RtmpDestination.t;
-      case _i14.StreamMetadata:
-        return _i14.StreamMetadata.t;
+      case _i10.RecordingSession:
+        return _i10.RecordingSession.t;
+      case _i11.RtmpDestination:
+        return _i11.RtmpDestination.t;
+      case _i15.StreamMetadata:
+        return _i15.StreamMetadata.t;
     }
     return null;
   }

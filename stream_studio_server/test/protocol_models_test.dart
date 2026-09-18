@@ -233,5 +233,29 @@ void main() {
       expect(deserialized.ingestionUrl, equals('rtmp://a.rtmp.youtube.com/live2'));
       expect(deserialized.isEnabled, equals(true));
     });
+
+    test('RecordingSession serialization and deserialization', () {
+      final rec = RecordingSession(
+        id: 12,
+        streamId: 'room_1',
+        fileName: 'recording_room1_123.mp4',
+        filePath: '/var/stream_studio/recordings/room1/recording_room1_123.mp4',
+        fileSizeBytes: 1024 * 1024 * 125,
+        status: 'completed',
+        recordedAt: DateTime.now(),
+      );
+
+      final json = rec.toJson();
+      expect(json['id'], equals(12));
+      expect(json['streamId'], equals('room_1'));
+      expect(json['fileName'], equals('recording_room1_123.mp4'));
+      expect(json['status'], equals('completed'));
+
+      final deserialized = RecordingSession.fromJson(json);
+      expect(deserialized.id, equals(12));
+      expect(deserialized.fileName, equals('recording_room1_123.mp4'));
+      expect(deserialized.fileSizeBytes, equals(1024 * 1024 * 125));
+      expect(deserialized.status, equals('completed'));
+    });
   });
 }
